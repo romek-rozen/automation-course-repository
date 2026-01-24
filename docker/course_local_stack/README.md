@@ -16,7 +16,7 @@ tar -xzf repo.tar.gz
 mkdir -p ~/docker-local
 
 # Krok 4: Skopiuj zawartosc stacka
-cp -r automation-course-repository-main/course_local_stack/. ~/docker-local/
+cp -r automation-course-repository-main/docker/course_local_stack/. ~/docker-local/
 
 # Krok 5: Usun pobrane pliki
 rm -rf repo.tar.gz automation-course-repository-main

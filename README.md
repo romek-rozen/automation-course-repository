@@ -6,11 +6,12 @@ Repozytorium zawiera gotowe konfiguracje Docker do kursu z automatyzacji.
 
 ```
 .
-├── course_local_stack/           # Wersja do nauki na lokalnej maszynie
-├── course_vps_stack/             # Pelna wersja produkcyjna VPS
-├── course_vps_n8n_with_workers/  # Uproszczony stack tylko n8n + workers
-├── course_vps_nocodb/            # Uproszczony stack tylko NocoDB + MinIO
-└── course_vps_qdrant/            # Uproszczony stack tylko Qdrant
+└── docker/
+    ├── course_local_stack/           # Wersja do nauki na lokalnej maszynie
+    ├── course_vps_stack/             # Pelna wersja produkcyjna VPS
+    ├── course_vps_n8n_with_workers/  # Uproszczony stack tylko n8n + workers
+    ├── course_vps_nocodb/            # Uproszczony stack tylko NocoDB + MinIO
+    └── course_vps_qdrant/            # Uproszczony stack tylko Qdrant
 ```
 
 ## Ktora wersja?
@@ -30,13 +31,27 @@ Uproszczona wersja do nauki - bez SSL, bez domen, wszystko na localhost.
 **Zawiera:** n8n (+ worker + webhook), NocoDB, MinIO, Qdrant, PostgreSQL, Redis
 
 ```bash
-# Instalacja
-curl -L https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz | tar -xz
-mv automation-course-repository-main/course_local_stack ~/docker-local
-rm -rf automation-course-repository-main
+# Krok 1: Pobierz repozytorium
+curl -L -o repo.tar.gz https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz
+
+# Krok 2: Rozpakuj archiwum
+tar -xzf repo.tar.gz
+
+# Krok 3: Utworz katalog docelowy
+mkdir -p ~/docker-local
+
+# Krok 4: Skopiuj zawartosc stacka
+cp -r automation-course-repository-main/docker/course_local_stack/. ~/docker-local/
+
+# Krok 5: Usun pobrane pliki
+rm -rf repo.tar.gz automation-course-repository-main
+
+# Krok 6: Przejdz do katalogu i uruchom instalator
 cd ~/docker-local
 chmod +x init_local_stack.sh setup.sh
 ./init_local_stack.sh
+
+# Krok 7: Uruchom stack
 docker compose up -d
 ```
 
@@ -53,13 +68,27 @@ Pelna wersja produkcyjna z Caddy (reverse proxy + automatyczne SSL).
 **Zawiera:** Caddy, n8n (+ worker + webhook), NocoDB, MinIO, Qdrant, PostgreSQL, Redis
 
 ```bash
-# Instalacja na VPS
-curl -L https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz | tar -xz
-mv automation-course-repository-main/course_vps_stack ~/docker
-rm -rf automation-course-repository-main
+# Krok 1: Pobierz repozytorium
+curl -L -o repo.tar.gz https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz
+
+# Krok 2: Rozpakuj archiwum
+tar -xzf repo.tar.gz
+
+# Krok 3: Utworz katalog docelowy
+mkdir -p ~/docker
+
+# Krok 4: Skopiuj zawartosc stacka
+cp -r automation-course-repository-main/docker/course_vps_stack/. ~/docker/
+
+# Krok 5: Usun pobrane pliki
+rm -rf repo.tar.gz automation-course-repository-main
+
+# Krok 6: Przejdz do katalogu i uruchom instalator
 cd ~/docker
 chmod +x init.sh setup.sh
 ./init.sh
+
+# Krok 7: Uruchom stack
 docker compose up -d
 ```
 
@@ -75,11 +104,27 @@ Uproszczony stack produkcyjny - tylko n8n z architektura workerow.
 **Zawiera:** Caddy, n8n (+ worker + webhook), PostgreSQL, Redis
 
 ```bash
-# Instalacja na VPS
-git clone <repo-url>
-cd course_vps_n8n_with_workers
+# Krok 1: Pobierz repozytorium
+curl -L -o repo.tar.gz https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz
+
+# Krok 2: Rozpakuj archiwum
+tar -xzf repo.tar.gz
+
+# Krok 3: Utworz katalog docelowy
+mkdir -p ~/docker
+
+# Krok 4: Skopiuj zawartosc stacka
+cp -r automation-course-repository-main/docker/course_vps_n8n_with_workers/. ~/docker/
+
+# Krok 5: Usun pobrane pliki
+rm -rf repo.tar.gz automation-course-repository-main
+
+# Krok 6: Przejdz do katalogu i uruchom instalator
+cd ~/docker
 chmod +x init.sh setup.sh
 ./init.sh
+
+# Krok 7: Uruchom stack
 docker compose up -d
 ```
 
@@ -101,13 +146,27 @@ Uproszczony stack produkcyjny - tylko NocoDB z MinIO do przechowywania plikow.
 **Zawiera:** Caddy, NocoDB, MinIO, PostgreSQL, Redis
 
 ```bash
-# Instalacja na VPS
-curl -L https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz | tar -xz
-mv automation-course-repository-main/course_vps_nocodb ~/docker
-rm -rf automation-course-repository-main
+# Krok 1: Pobierz repozytorium
+curl -L -o repo.tar.gz https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz
+
+# Krok 2: Rozpakuj archiwum
+tar -xzf repo.tar.gz
+
+# Krok 3: Utworz katalog docelowy
+mkdir -p ~/docker
+
+# Krok 4: Skopiuj zawartosc stacka
+cp -r automation-course-repository-main/docker/course_vps_nocodb/. ~/docker/
+
+# Krok 5: Usun pobrane pliki
+rm -rf repo.tar.gz automation-course-repository-main
+
+# Krok 6: Przejdz do katalogu i uruchom instalator
 cd ~/docker
 chmod +x init.sh setup.sh
 ./init.sh
+
+# Krok 7: Uruchom stack
 docker compose up -d
 ```
 
@@ -124,13 +183,27 @@ Minimalny stack produkcyjny - tylko Qdrant (vector database).
 **Zawiera:** Caddy, Qdrant
 
 ```bash
-# Instalacja na VPS
-curl -L https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz | tar -xz
-mv automation-course-repository-main/course_vps_qdrant ~/docker
-rm -rf automation-course-repository-main
+# Krok 1: Pobierz repozytorium
+curl -L -o repo.tar.gz https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz
+
+# Krok 2: Rozpakuj archiwum
+tar -xzf repo.tar.gz
+
+# Krok 3: Utworz katalog docelowy
+mkdir -p ~/docker
+
+# Krok 4: Skopiuj zawartosc stacka
+cp -r automation-course-repository-main/docker/course_vps_qdrant/. ~/docker/
+
+# Krok 5: Usun pobrane pliki
+rm -rf repo.tar.gz automation-course-repository-main
+
+# Krok 6: Przejdz do katalogu i uruchom instalator
 cd ~/docker
 chmod +x init.sh setup.sh
 ./init.sh
+
+# Krok 7: Uruchom stack
 docker compose up -d
 ```
 

@@ -13,7 +13,7 @@ tar -xzf repo.tar.gz
 mkdir -p ~/docker
 
 # Krok 4: Skopiuj zawartosc stacka
-cp -r automation-course-repository-main/course_vps_stack/. ~/docker/
+cp -r automation-course-repository-main/docker/course_vps_stack/. ~/docker/
 
 # Krok 5: Usun pobrane pliki
 rm -rf repo.tar.gz automation-course-repository-main

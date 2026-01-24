@@ -5,53 +5,56 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Opis projektu
 
 Repozytorium z konfiguracjami Docker do kursu z automatyzacji. Zawiera piec wersji stacka:
-- **course_local_stack/** - wersja do nauki na lokalnej maszynie
-- **course_vps_stack/** - pelna wersja produkcyjna na serwer VPS
-- **course_vps_n8n_with_workers/** - uproszczony stack VPS (tylko n8n + workers)
-- **course_vps_nocodb/** - uproszczony stack VPS (tylko NocoDB + MinIO)
-- **course_vps_qdrant/** - uproszczony stack VPS (tylko Qdrant)
+- **docker/course_local_stack/** - wersja do nauki na lokalnej maszynie
+- **docker/course_vps_stack/** - pelna wersja produkcyjna na serwer VPS
+- **docker/course_vps_n8n_with_workers/** - uproszczony stack VPS (tylko n8n + workers)
+- **docker/course_vps_nocodb/** - uproszczony stack VPS (tylko NocoDB + MinIO)
+- **docker/course_vps_qdrant/** - uproszczony stack VPS (tylko Qdrant)
 
 ## Struktura repozytorium
 
 ```
 .
-├── course_local_stack/            # Wersja lokalna (bez SSL, localhost)
-│   ├── init_local_stack.sh        # Skrypt inicjalizacji
-│   ├── init-data.sh               # Skrypt PostgreSQL (tworzy bazy i userow)
-│   ├── setup.sh                   # Przygotowanie katalogow
-│   ├── docker-compose.yml
-│   └── .env.example
+├── docker/                        # Katalog z konfiguracjami Docker
+│   ├── course_local_stack/        # Wersja lokalna (bez SSL, localhost)
+│   │   ├── init_local_stack.sh    # Skrypt inicjalizacji
+│   │   ├── init-data.sh           # Skrypt PostgreSQL (tworzy bazy i userow)
+│   │   ├── setup.sh               # Przygotowanie katalogow
+│   │   ├── docker-compose.yml
+│   │   └── .env.example
+│   │
+│   ├── course_vps_stack/          # Pelna wersja VPS (Caddy + SSL)
+│   │   ├── init.sh                # Skrypt inicjalizacji z konfiguracja domen
+│   │   ├── init-data.sh           # Skrypt PostgreSQL (tworzy bazy i userow)
+│   │   ├── setup.sh               # Przygotowanie katalogow i sieci
+│   │   ├── docker-compose.yml
+│   │   ├── .env.example
+│   │   └── caddy/Caddyfile
+│   │
+│   ├── course_vps_n8n_with_workers/  # Uproszczony VPS (tylko n8n + workers)
+│   │   ├── init.sh                # Skrypt inicjalizacji
+│   │   ├── init-data.sh           # Skrypt PostgreSQL (tworzy baze i usera)
+│   │   ├── setup.sh               # Przygotowanie katalogow i sieci
+│   │   ├── docker-compose.yml     # 6 uslug (bez NocoDB, MinIO, Qdrant)
+│   │   ├── .env.example           # 5 sekretow
+│   │   └── caddy/Caddyfile        # Tylko routing n8n
+│   │
+│   ├── course_vps_nocodb/         # Uproszczony VPS (tylko NocoDB + MinIO)
+│   │   ├── init.sh                # Skrypt inicjalizacji
+│   │   ├── init-data.sh           # Skrypt PostgreSQL (tworzy baze i usera)
+│   │   ├── setup.sh               # Przygotowanie katalogow i sieci
+│   │   ├── docker-compose.yml     # 5 uslug (bez n8n, Qdrant)
+│   │   ├── .env.example           # 5 sekretow
+│   │   └── caddy/Caddyfile        # Routing nocodb + minio
+│   │
+│   └── course_vps_qdrant/         # Uproszczony VPS (tylko Qdrant)
+│       ├── init.sh                # Skrypt inicjalizacji
+│       ├── setup.sh               # Przygotowanie katalogow i sieci
+│       ├── docker-compose.yml     # 2 uslugi (Caddy + Qdrant)
+│       ├── .env.example           # 1 sekret (QDRANT_API_KEY)
+│       └── caddy/Caddyfile        # Routing qdrant.DOMAIN
 │
-├── course_vps_stack/              # Pelna wersja VPS (Caddy + SSL)
-│   ├── init.sh                    # Skrypt inicjalizacji z konfiguracja domen
-│   ├── init-data.sh               # Skrypt PostgreSQL (tworzy bazy i userow)
-│   ├── setup.sh                   # Przygotowanie katalogow i sieci
-│   ├── docker-compose.yml
-│   ├── .env.example
-│   └── caddy/Caddyfile
-│
-├── course_vps_n8n_with_workers/   # Uproszczony VPS (tylko n8n + workers)
-│   ├── init.sh                    # Skrypt inicjalizacji
-│   ├── init-data.sh               # Skrypt PostgreSQL (tworzy baze i usera)
-│   ├── setup.sh                   # Przygotowanie katalogow i sieci
-│   ├── docker-compose.yml         # 6 uslug (bez NocoDB, MinIO, Qdrant)
-│   ├── .env.example               # 5 sekretow
-│   └── caddy/Caddyfile            # Tylko routing n8n
-│
-├── course_vps_nocodb/             # Uproszczony VPS (tylko NocoDB + MinIO)
-│   ├── init.sh                    # Skrypt inicjalizacji
-│   ├── init-data.sh               # Skrypt PostgreSQL (tworzy baze i usera)
-│   ├── setup.sh                   # Przygotowanie katalogow i sieci
-│   ├── docker-compose.yml         # 5 uslug (bez n8n, Qdrant)
-│   ├── .env.example               # 5 sekretow
-│   └── caddy/Caddyfile            # Routing nocodb + minio
-│
-└── course_vps_qdrant/             # Uproszczony VPS (tylko Qdrant)
-    ├── init.sh                    # Skrypt inicjalizacji
-    ├── setup.sh                   # Przygotowanie katalogow i sieci
-    ├── docker-compose.yml         # 2 uslugi (Caddy + Qdrant)
-    ├── .env.example               # 1 sekret (QDRANT_API_KEY)
-    └── caddy/Caddyfile            # Routing qdrant.DOMAIN
+└── README.md
 ```
 
 ## Architektura stacka
@@ -113,28 +116,28 @@ Autentykacja przez API_KEY + JWT RBAC.
 
 ```bash
 # === LOCAL STACK ===
-cd course_local_stack
+cd docker/course_local_stack
 ./init_local_stack.sh        # Inicjalizacja (opcjonalne silne hasla)
 docker compose up -d
 
 # === VPS STACK (pelny) ===
-cd course_vps_stack
+cd docker/course_vps_stack
 ./init.sh                    # Inicjalizacja (konfiguracja domen + generowanie hasel)
 docker compose up -d
 
 # === VPS N8N WITH WORKERS (uproszczony) ===
-cd course_vps_n8n_with_workers
+cd docker/course_vps_n8n_with_workers
 ./init.sh                    # Inicjalizacja (1 domena + 5 sekretow)
 docker compose up -d
 docker compose up -d --scale n8n-worker=3  # Skalowanie workerow
 
 # === VPS NOCODB (uproszczony) ===
-cd course_vps_nocodb
+cd docker/course_vps_nocodb
 ./init.sh                    # Inicjalizacja (2 domeny + 5 sekretow)
 docker compose up -d
 
 # === VPS QDRANT (uproszczony) ===
-cd course_vps_qdrant
+cd docker/course_vps_qdrant
 ./init.sh                    # Inicjalizacja (1 domena + 1 sekret)
 docker compose up -d
 

@@ -1,6 +1,6 @@
-# n8n with Workers - Docker Stack (VPS)
+# NocoDB with MinIO - Docker Stack (VPS)
 
-Stack produkcyjny n8n z architektura workerow na serwer VPS z automatycznym SSL.
+Stack produkcyjny NocoDB z MinIO na serwer VPS z automatycznym SSL.
 
 ## Architektura
 
@@ -8,37 +8,32 @@ Stack produkcyjny n8n z architektura workerow na serwer VPS z automatycznym SSL.
                     [Internet]
                         |
                     [Caddy]
-                   /   |    \
-          /webhook/*   |     (pozostale)
-              |        |           |
-        [n8n-webhook]  |       [n8n main]
-              |        |           |
-              +--------+-----------+
-                       |
-            +----------+----------+
-            |                     |
-       [PostgreSQL]           [Redis]
-            |                     |
-            +----------+----------+
-                       |
-                 [n8n-worker]
+                   /        \
+          nocodb.DOMAIN   minio.DOMAIN
+              |                |
+          [NocoDB]        [MinIO Console]
+              |                |
+              +-------+--------+
+                      |
+         +------------+------------+
+         |            |            |
+    [PostgreSQL]  [Redis]     [MinIO API]
 ```
 
 **Komponenty:**
 - **Caddy** - Reverse proxy z automatycznym SSL (Let's Encrypt)
-- **n8n** - Glowna instancja (UI + API)
-- **n8n-worker** - Przetwarza zadania z kolejki Redis
-- **n8n-webhook** - Odbiera produkcyjne webhooki
-- **PostgreSQL 16** - Baza danych n8n
-- **Redis 8** - Kolejki Bull dla workerow
+- **NocoDB** - No-code database (UI + API)
+- **PostgreSQL 16** - Baza danych NocoDB
+- **Redis 8** - Cache dla NocoDB
+- **MinIO** - S3-compatible storage dla plikow
 
 ## Wymagania
 
 - Serwer VPS z Linux (Ubuntu 22.04+ / Debian 12+)
 - Docker i Docker Compose
-- Domena z rekord DNS A wskazujacym na serwer
+- Domena z rekordami DNS A wskazujacymi na serwer
 - Otwarte porty: 80, 443
-- Min. 2GB RAM (zalecane 4GB+)
+- Min. 2GB RAM (zalecane 4GB)
 
 ## Instalacja
 
@@ -53,7 +48,7 @@ tar -xzf repo.tar.gz
 mkdir -p ~/docker
 
 # Krok 4: Skopiuj zawartosc stacka
-cp -r automation-course-repository-main/course_vps_n8n_with_workers/. ~/docker/
+cp -r automation-course-repository-main/docker/course_vps_nocodb/. ~/docker/
 
 # Krok 5: Usun pobrane pliki
 rm -rf repo.tar.gz automation-course-repository-main
@@ -69,11 +64,13 @@ docker compose up -d
 
 ## Konfiguracja DNS
 
-Dodaj rekord A dla subdomeny n8n:
+Dodaj rekordy A dla subdomen:
 
 | Typ | Nazwa | Wartosc |
 |-----|-------|---------|
-| A | n8n | IP_TWOJEGO_SERWERA |
+| A | nocodb | IP_TWOJEGO_SERWERA |
+| A | minio | IP_TWOJEGO_SERWERA |
+| A | api.minio | IP_TWOJEGO_SERWERA (opcjonalnie) |
 
 Propagacja DNS moze zajac do 24h (zwykle 5-30 min).
 
@@ -82,47 +79,35 @@ Propagacja DNS moze zajac do 24h (zwykle 5-30 min).
 | Zmienna | Opis | Przyklad |
 |---------|------|----------|
 | DOMAIN | Domena bazowa | firma.pl |
-| N8N_DOMAIN | Pelna domena n8n | n8n.firma.pl |
+| NOCODB_DOMAIN | Pelna domena NocoDB | nocodb.firma.pl |
+| MINIO_DOMAIN | Pelna domena MinIO | minio.firma.pl |
 | REDIS_PASSWORD | Haslo Redis | (generowane) |
 | POSTGRES_PASSWORD | Haslo PostgreSQL superuser | (generowane) |
-| POSTGRES_N8N_PASSWORD | Haslo PostgreSQL dla n8n | (generowane) |
-| N8N_ENCRYPTION_KEY | Klucz szyfrowania n8n | (generowane) |
-| N8N_GENERIC_TIMEZONE | Strefa czasowa | Europe/Warsaw |
-| N8N_SMTP_* | Konfiguracja email | (opcjonalne) |
+| POSTGRES_NOCODB_PASSWORD | Haslo PostgreSQL dla NocoDB | (generowane) |
+| NC_JWT_SECRET | JWT Secret NocoDB | (generowane UUID) |
+| MINIO_ROOT_PASSWORD | Haslo MinIO | (generowane) |
 
 ## PostgreSQL - struktura uzytkownikow
 
 ```
 PostgreSQL
 ├── postgres (SUPERUSER) ← tylko do administracji i backupow
-└── n8n → n8n_db         ← zwykly user z dostepem tylko do swojej bazy
+└── nocodb → nocodb_db   ← zwykly user z dostepem tylko do swojej bazy
 ```
 
 Skrypt `init-data.sh` tworzy baze i uzytkownika przy pierwszym uruchomieniu PostgreSQL.
-
-## Skalowanie workerow
-
-Aby dodac wiecej workerow:
-
-```bash
-# Skaluj do 3 workerow
-docker compose up -d --scale n8n-worker=3
-
-# Sprawdz status
-docker compose ps
-```
 
 ## Przydatne komendy
 
 ```bash
 # Logi
 docker compose logs -f
-docker compose logs -f n8n
-docker compose logs -f n8n-worker
+docker compose logs -f nocodb
+docker compose logs -f minio
 
 # Restart
 docker compose restart
-docker compose restart n8n
+docker compose restart nocodb
 
 # Status
 docker compose ps
@@ -134,13 +119,13 @@ docker compose down
 docker compose pull && docker compose up -d
 
 # Backup bazy (uzyj superusera postgres)
-docker compose exec pg_database pg_dump -U postgres n8n_db > backup.sql
+docker compose exec pg_database pg_dump -U postgres nocodb_db > backup.sql
 ```
 
 ## Struktura katalogow
 
 ```
-course_vps_n8n_with_workers/
+course_vps_nocodb/
 ├── .env.example          # Szablon konfiguracji
 ├── docker-compose.yml    # Definicja uslug
 ├── init.sh               # Automatyczna konfiguracja
@@ -150,11 +135,10 @@ course_vps_n8n_with_workers/
 │   └── Caddyfile         # Konfiguracja reverse proxy
 ├── README.md             # Ten plik
 └── volumes/              # Dane aplikacji (po setup.sh)
-    ├── n8n/
-    │   ├── data/         # Dane n8n
-    │   └── local_files/  # Pliki lokalne
+    ├── nocodb/           # Dane NocoDB
     ├── db_data/          # Dane PostgreSQL
     ├── redis_data/       # Dane Redis
+    ├── minio_data/       # Dane MinIO (pliki)
     ├── caddy_data/       # Certyfikaty SSL
     └── caddy_config/     # Konfiguracja Caddy
 ```
@@ -164,28 +148,28 @@ course_vps_n8n_with_workers/
 ### Certyfikat SSL nie dziala
 ```bash
 # Sprawdz DNS
-nslookup n8n.twoja-domena.pl
+nslookup nocodb.twoja-domena.pl
 
 # Sprawdz logi Caddy
 docker compose logs caddy
 ```
 
-### Worker nie przetwarza zadan
+### NocoDB nie startuje
 ```bash
-# Sprawdz logi workera
-docker compose logs n8n-worker
+# Sprawdz logi
+docker compose logs nocodb
 
-# Sprawdz Redis
-docker compose exec redis redis-cli -a $REDIS_PASSWORD INFO
+# Sprawdz czy PostgreSQL dziala
+docker compose exec pg_database pg_isready
 ```
 
-### Brak pamieci
+### MinIO nie dziala
 ```bash
-# Sprawdz zuzycie
-docker stats
+# Sprawdz logi
+docker compose logs minio
 
-# Wyczysc nieuzywane obrazy
-docker system prune -a
+# Sprawdz health
+curl http://localhost:9000/minio/health/live
 ```
 
 ## Backup i przywracanie
@@ -196,7 +180,7 @@ docker system prune -a
 docker compose down
 
 # Backup
-tar -czvf backup-n8n-$(date +%Y%m%d).tar.gz volumes/
+tar -czvf backup-nocodb-$(date +%Y%m%d).tar.gz volumes/
 
 # Uruchom ponownie
 docker compose up -d
@@ -205,22 +189,19 @@ docker compose up -d
 ### Przywracanie
 ```bash
 docker compose down
-tar -xzvf backup-n8n-YYYYMMDD.tar.gz
+tar -xzvf backup-nocodb-YYYYMMDD.tar.gz
 docker compose up -d
 ```
 
 ## Porownanie z pelnym stackiem
 
-| Element | vps_stack | vps_n8n_with_workers |
-|---------|-----------|----------------------|
-| Uslugi | 9 | 6 |
+| Element | vps_stack | vps_nocodb |
+|---------|-----------|------------|
+| Uslugi | 9 | 5 |
 | Sekrety | 8 | 5 |
-| Subdomeny | 5 | 1 |
+| Subdomeny | 5 | 2 (+1 opcjonalna api.minio) |
 | RAM | ~6GB | ~2GB |
-| NocoDB | Tak | Nie |
-| MinIO | Tak | Nie |
+| n8n | Tak | Nie |
+| NocoDB | Tak | Tak |
+| MinIO | Tak | Tak |
 | Qdrant | Tak | Nie |
-
-## Licencja
-
-MIT License
