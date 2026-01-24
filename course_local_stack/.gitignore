@@ -1,0 +1,5 @@
+# Konfiguracja lokalna (zawiera hasla)
+.env
+
+# Dane aplikacji
+volumes/

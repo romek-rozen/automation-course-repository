@@ -1,0 +1,8 @@
+# Konfiguracja lokalna (zawiera hasla)
+.env
+
+# Dane aplikacji
+volumes/
+
+# Sekrety wygenerowane przez init.sh
+secrets.txt
