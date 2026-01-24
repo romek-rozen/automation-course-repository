@@ -88,10 +88,21 @@ Propagacja DNS moze zajac do 24h (zwykle 5-30 min).
 | DOMAIN | Domena bazowa | firma.pl |
 | N8N_DOMAIN | Pelna domena n8n | n8n.firma.pl |
 | REDIS_PASSWORD | Haslo Redis | (generowane) |
-| POSTGRES_N8N_PASSWORD | Haslo PostgreSQL | (generowane) |
+| POSTGRES_PASSWORD | Haslo PostgreSQL superuser | (generowane) |
+| POSTGRES_N8N_PASSWORD | Haslo PostgreSQL dla n8n | (generowane) |
 | N8N_ENCRYPTION_KEY | Klucz szyfrowania n8n | (generowane) |
 | N8N_GENERIC_TIMEZONE | Strefa czasowa | Europe/Warsaw |
 | N8N_SMTP_* | Konfiguracja email | (opcjonalne) |
+
+## PostgreSQL - struktura uzytkownikow
+
+```
+PostgreSQL
+├── postgres (SUPERUSER) ← tylko do administracji i backupow
+└── n8n → n8n_db         ← zwykly user z dostepem tylko do swojej bazy
+```
+
+Skrypt `init-data.sh` tworzy baze i uzytkownika przy pierwszym uruchomieniu PostgreSQL.
 
 ## Skalowanie workerow
 
@@ -126,8 +137,8 @@ docker compose down
 # Aktualizacja
 docker compose pull && docker compose up -d
 
-# Backup bazy
-docker compose exec pg_database pg_dump -U n8n n8n_db > backup.sql
+# Backup bazy (uzyj superusera postgres)
+docker compose exec pg_database pg_dump -U postgres n8n_db > backup.sql
 ```
 
 ## Struktura katalogow
@@ -137,6 +148,7 @@ course_vps_n8n_with_workers/
 ├── .env.example          # Szablon konfiguracji
 ├── docker-compose.yml    # Definicja uslug
 ├── init.sh               # Automatyczna konfiguracja
+├── init-data.sh          # Skrypt PostgreSQL (tworzy baze i usera)
 ├── setup.sh              # Przygotowanie srodowiska
 ├── caddy/
 │   └── Caddyfile         # Konfiguracja reverse proxy
@@ -206,7 +218,7 @@ docker compose up -d
 | Element | vps_stack | vps_n8n_with_workers |
 |---------|-----------|----------------------|
 | Uslugi | 9 | 6 |
-| Sekrety | 8 | 4 |
+| Sekrety | 8 | 5 |
 | Subdomeny | 5 | 1 |
 | RAM | ~6GB | ~2GB |
 | NocoDB | Tak | Nie |

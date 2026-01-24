@@ -31,9 +31,10 @@ Repozytorium z konfiguracjami Docker do kursu z automatyzacji. Zawiera cztery we
 │
 ├── course_vps_n8n_with_workers/   # Uproszczony VPS (tylko n8n + workers)
 │   ├── init.sh                    # Skrypt inicjalizacji
+│   ├── init-data.sh               # Skrypt PostgreSQL (tworzy baze i usera)
 │   ├── setup.sh                   # Przygotowanie katalogow i sieci
 │   ├── docker-compose.yml         # 6 uslug (bez NocoDB, MinIO, Qdrant)
-│   ├── .env.example               # 4 sekrety
+│   ├── .env.example               # 5 sekretow
 │   └── caddy/Caddyfile            # Tylko routing n8n
 │
 └── course_vps_nocodb/             # Uproszczony VPS (tylko NocoDB + MinIO)
@@ -105,7 +106,7 @@ docker compose up -d
 
 # === VPS N8N WITH WORKERS (uproszczony) ===
 cd course_vps_n8n_with_workers
-./init.sh                    # Inicjalizacja (1 domena + 4 sekrety)
+./init.sh                    # Inicjalizacja (1 domena + 5 sekretow)
 docker compose up -d
 docker compose up -d --scale n8n-worker=3  # Skalowanie workerow
 
@@ -117,7 +118,7 @@ docker compose up -d
 # === Wspolne ===
 docker compose logs -f [nazwa-uslugi]
 docker compose pull && docker compose up -d
-docker compose exec pg_database pg_dump -U n8n n8n_db > backup.sql
+docker compose exec pg_database pg_dump -U postgres n8n_db > backup.sql
 ```
 
 ## Roznice miedzy stackami
@@ -126,7 +127,7 @@ docker compose exec pg_database pg_dump -U n8n n8n_db > backup.sql
 |-------|-------|-------------|-----------------|------------|
 | Reverse proxy | Brak | Caddy | Caddy | Caddy |
 | SSL | Brak | Let's Encrypt | Let's Encrypt | Let's Encrypt |
-| Hasla | Domyslne | 8 sekretow | 4 sekrety | 5 sekretow |
+| Hasla | Domyslne | 8 sekretow | 5 sekretow | 5 sekretow |
 | Domeny | localhost | 5 subdomen | 1 subdomena | 2 subdomeny |
 | Uslugi | 9 | 9 | 6 | 5 |
 | RAM | ~4GB | ~6GB | ~2GB | ~2GB |
