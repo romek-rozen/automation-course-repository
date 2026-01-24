@@ -137,9 +137,12 @@ echo -e "${GREEN}[OK]${NC} Domena skonfigurowana: ${N8N_DOMAIN}"
 echo ""
 echo -e "${CYAN}[4/6] Generowanie sekretow...${NC}"
 
-REDIS_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
-POSTGRES_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
-POSTGRES_N8N_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
+# URL-safe hasla (hex) - uzywane w connection stringach
+REDIS_PASSWORD=$(openssl rand -hex 32)
+POSTGRES_PASSWORD=$(openssl rand -hex 32)
+POSTGRES_N8N_PASSWORD=$(openssl rand -hex 32)
+
+# Klucze szyfrujace - base64 OK (nie uzywane w URL)
 N8N_ENCRYPTION_KEY=$(openssl rand -base64 32 | tr -d '\n')
 N8N_JWT_SECRET=$(openssl rand -base64 32 | tr -d '\n')
 

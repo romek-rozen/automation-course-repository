@@ -148,11 +148,12 @@ echo -e "${GREEN}[OK]${NC} Domeny skonfigurowane"
 echo ""
 echo -e "${CYAN}[4/6] Generowanie sekretow...${NC}"
 
-REDIS_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
-POSTGRES_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
-POSTGRES_NOCODB_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
+# URL-safe hasla (hex) - uzywane w connection stringach
+REDIS_PASSWORD=$(openssl rand -hex 32)
+POSTGRES_PASSWORD=$(openssl rand -hex 32)
+POSTGRES_NOCODB_PASSWORD=$(openssl rand -hex 32)
+MINIO_ROOT_PASSWORD=$(openssl rand -hex 32)
 NC_JWT_SECRET=$(uuidgen)
-MINIO_ROOT_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
 
 echo -e "${GREEN}[OK]${NC} Sekrety wygenerowane"
 

@@ -137,7 +137,8 @@ echo -e "${GREEN}[OK]${NC} Domena skonfigurowana: ${QDRANT_DOMAIN}"
 echo ""
 echo -e "${CYAN}[4/6] Generowanie sekretow...${NC}"
 
-QDRANT_API_KEY=$(openssl rand -base64 32 | tr -d '\n')
+# URL-safe klucz API (hex)
+QDRANT_API_KEY=$(openssl rand -hex 32)
 
 echo -e "${GREEN}[OK]${NC} Klucz API wygenerowany"
 
