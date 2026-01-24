@@ -1,5 +1,26 @@
 # Instrukcja uruchomienia stacka Docker
 
+## Instalacja
+
+```bash
+# 1. Sklonuj repozytorium do ~/docker
+git clone https://github.com/romek-rozen/automation-stack.git ~/docker
+
+# 2. Przejdz do katalogu
+cd ~/docker/course_vps_stack
+
+# 3. Uruchom instalator (zapyta o domene, wygeneruje hasla)
+chmod +x init.sh setup.sh
+./init.sh
+
+# 4. Uruchom stack
+docker compose up -d
+```
+
+> Po 1-2 minutach aplikacje beda dostepne pod Twoja domena z certyfikatem SSL.
+
+---
+
 ## Wymagania
 
 - Serwer VPS z systemem Linux (Ubuntu 22.04+ / Debian 12+)
@@ -214,7 +235,7 @@ docker image prune -a
 Po uruchomieniu `setup.sh` powstanie struktura:
 
 ```
-course_template/
+course_vps_stack/
 ├── .env                  # Twoja konfiguracja (nie commituj!)
 ├── .env.example          # Szablon konfiguracji
 ├── docker-compose.yml    # Definicja uslug
