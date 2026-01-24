@@ -1,6 +1,7 @@
 # Docker Stack - Wersja Lokalna
 
-Uproszczona wersja stacka Docker przeznaczona do nauki i testow na lokalnej maszynie.
+Wersja stacka Docker przeznaczona do nauki i testow na lokalnej maszynie.
+Zawiera pelny tryb kolejkowy (n8n + worker + webhook) jak wersja VPS.
 
 ## Szybki start
 
@@ -101,12 +102,12 @@ course_local_stack/
 |-------|-----|---------|
 | Reverse proxy | Caddy (SSL) | Brak |
 | Protokol | HTTPS | HTTP |
-| n8n instances | 3 (main + worker + webhook) | 1 |
-| n8n execution mode | Queue | Regular |
+| n8n instances | 3 (main + worker + webhook) | 3 (main + worker + webhook) |
+| n8n execution mode | Queue | Queue |
 | Domena | Wymagana | localhost |
 | SMTP | Konfigurowalny | Brak |
 | API Keys | Wymagane | Brak |
-| Limity zasobow | Wyzsze | Nizsze |
+| Limity zasobow | Tak | Brak |
 
 ## Migracja na VPS
 

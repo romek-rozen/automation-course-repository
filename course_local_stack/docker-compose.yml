@@ -1,15 +1,15 @@
 # =============================================================================
 # DOCKER COMPOSE - WERSJA LOKALNA (do nauki i testow)
 # =============================================================================
-# Uproszczona wersja stacka bez:
-# - Caddy (reverse proxy) - dostep przez localhost:port
-# - n8n-worker i n8n-webhook - jeden n8n bez trybu kolejkowego
+# Wersja lokalna stacka:
+# - Bez Caddy (reverse proxy) - dostep przez localhost:port
+# - Z trybem kolejkowym (n8n + worker + webhook)
 #
 # Stack zawiera:
-# - n8n (workflow automation)
+# - n8n (workflow automation) + worker + webhook
 # - NocoDB (no-code database)
 # - PostgreSQL (glowna baza danych)
-# - Redis (cache)
+# - Redis (cache + kolejki)
 # - MinIO (S3-compatible storage)
 # - Qdrant (vector database)
 #
@@ -18,13 +18,12 @@
 # =============================================================================
 
 services:
-  # === N8N ===
-  n8n:
+  # === N8N STACK ===
+  # Wspolna konfiguracja dla wszystkich instancji n8n
+  x-n8n-shared: &n8n-shared
     image: docker.n8n.io/n8nio/n8n
     restart: unless-stopped
     env_file: .env
-    ports:
-      - "5678:5678"
     depends_on:
       pg_database:
         condition: service_healthy
@@ -46,6 +45,13 @@ services:
       - DB_POSTGRESDB_DATABASE=${POSTGRES_N8N_DB}
       - DB_POSTGRESDB_USER=${POSTGRES_N8N_USER}
       - DB_POSTGRESDB_PASSWORD=${POSTGRES_N8N_PASSWORD}
+      # Kolejki Redis
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=${QUEUE_BULL_REDIS_HOST}
+      - QUEUE_BULL_REDIS_PORT=${QUEUE_BULL_REDIS_PORT}
+      - QUEUE_BULL_REDIS_PASSWORD=${QUEUE_BULL_REDIS_PASSWORD}
+      - QUEUE_BULL_REDIS_DB=${QUEUE_BULL_REDIS_DB}
+      - QUEUE_HEALTH_CHECK_ACTIVE=true
       # Bezpieczenstwo
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
       # Czyszczenie danych
@@ -53,6 +59,7 @@ services:
       - EXECUTIONS_DATA_MAX_AGE=336
       - EXECUTIONS_DATA_PRUNE_MAX_COUNT=10000
       # Wydajnosc
+      - OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true
       - N8N_CONCURRENCY_PRODUCTION_LIMIT=10
       - N8N_DEFAULT_BINARY_DATA_MODE=filesystem
       # Community packages
@@ -63,6 +70,26 @@ services:
       - ./volumes/n8n/local_files:/files
     networks:
       - local
+
+  # Glowna instancja n8n (UI + API)
+  n8n:
+    <<: *n8n-shared
+    ports:
+      - "5678:5678"
+
+  # Worker - przetwarza zadania z kolejki
+  n8n-worker:
+    <<: *n8n-shared
+    command: worker
+    depends_on:
+      - n8n
+
+  # Webhook processor - odbiera webhooki
+  n8n-webhook:
+    <<: *n8n-shared
+    command: webhook
+    depends_on:
+      - n8n
 
   # === NOCODB ===
   nocodb:
