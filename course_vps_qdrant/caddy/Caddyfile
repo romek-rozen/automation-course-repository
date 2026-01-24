@@ -1,0 +1,47 @@
+# =============================================================================
+# CADDYFILE - QDRANT VECTOR DATABASE (VPS)
+# =============================================================================
+# Caddy automatycznie obsluguje certyfikaty SSL (Let's Encrypt)
+# Zmienna QDRANT_DOMAIN jest przekazywana z docker-compose.yml
+# =============================================================================
+
+# === QDRANT REST API ===
+{$QDRANT_DOMAIN:qdrant.localhost} {
+    # Security Headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Blokuj indeksowanie przez wyszukiwarki (API only)
+        X-Robots-Tag "noindex, nofollow"
+    }
+
+    # Proxy do Qdrant REST API
+    reverse_proxy qdrant:6333 {
+        # Timeout dla duzych operacji (batch insert, search)
+        transport http {
+            response_header_timeout 120s
+            read_timeout 120s
+            write_timeout 120s
+        }
+    }
+
+    # Kompresja odpowiedzi JSON
+    encode gzip
+
+    # Logi z rotacja
+    log {
+        output file /var/log/caddy/qdrant.log {
+            roll_size 100mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+    }
+
+    # Wieksze limity dla batch operations
+    request_body {
+        max_size 50MB
+    }
+}

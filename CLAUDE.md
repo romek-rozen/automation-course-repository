@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Opis projektu
 
-Repozytorium z konfiguracjami Docker do kursu z automatyzacji. Zawiera cztery wersje stacka:
+Repozytorium z konfiguracjami Docker do kursu z automatyzacji. Zawiera piec wersji stacka:
 - **course_local_stack/** - wersja do nauki na lokalnej maszynie
 - **course_vps_stack/** - pelna wersja produkcyjna na serwer VPS
 - **course_vps_n8n_with_workers/** - uproszczony stack VPS (tylko n8n + workers)
 - **course_vps_nocodb/** - uproszczony stack VPS (tylko NocoDB + MinIO)
+- **course_vps_qdrant/** - uproszczony stack VPS (tylko Qdrant)
 
 ## Struktura repozytorium
 
@@ -37,13 +38,20 @@ Repozytorium z konfiguracjami Docker do kursu z automatyzacji. Zawiera cztery we
 │   ├── .env.example               # 5 sekretow
 │   └── caddy/Caddyfile            # Tylko routing n8n
 │
-└── course_vps_nocodb/             # Uproszczony VPS (tylko NocoDB + MinIO)
+├── course_vps_nocodb/             # Uproszczony VPS (tylko NocoDB + MinIO)
+│   ├── init.sh                    # Skrypt inicjalizacji
+│   ├── init-data.sh               # Skrypt PostgreSQL (tworzy baze i usera)
+│   ├── setup.sh                   # Przygotowanie katalogow i sieci
+│   ├── docker-compose.yml         # 5 uslug (bez n8n, Qdrant)
+│   ├── .env.example               # 5 sekretow
+│   └── caddy/Caddyfile            # Routing nocodb + minio
+│
+└── course_vps_qdrant/             # Uproszczony VPS (tylko Qdrant)
     ├── init.sh                    # Skrypt inicjalizacji
-    ├── init-data.sh               # Skrypt PostgreSQL (tworzy baze i usera)
     ├── setup.sh                   # Przygotowanie katalogow i sieci
-    ├── docker-compose.yml         # 5 uslug (bez n8n, Qdrant)
-    ├── .env.example               # 5 sekretow
-    └── caddy/Caddyfile            # Routing nocodb + minio
+    ├── docker-compose.yml         # 2 uslugi (Caddy + Qdrant)
+    ├── .env.example               # 1 sekret (QDRANT_API_KEY)
+    └── caddy/Caddyfile            # Routing qdrant.DOMAIN
 ```
 
 ## Architektura stacka
@@ -91,6 +99,16 @@ Redis ← NocoDB (cache /15)
 MinIO ← NocoDB (pliki/attachmenty)
 ```
 
+### Uproszczony stack Qdrant (course_vps_qdrant)
+
+```
+[Caddy]
+    └── Qdrant (vector database)
+
+Qdrant jest autonomiczny - nie wymaga PostgreSQL ani Redis.
+Autentykacja przez API_KEY + JWT RBAC.
+```
+
 ## Komendy
 
 ```bash
@@ -115,6 +133,11 @@ cd course_vps_nocodb
 ./init.sh                    # Inicjalizacja (2 domeny + 5 sekretow)
 docker compose up -d
 
+# === VPS QDRANT (uproszczony) ===
+cd course_vps_qdrant
+./init.sh                    # Inicjalizacja (1 domena + 1 sekret)
+docker compose up -d
+
 # === Wspolne ===
 docker compose logs -f [nazwa-uslugi]
 docker compose pull && docker compose up -d
@@ -123,31 +146,31 @@ docker compose exec pg_database pg_dump -U postgres n8n_db > backup.sql
 
 ## Roznice miedzy stackami
 
-| Cecha | Local | VPS (pelny) | VPS n8n+workers | VPS nocodb |
-|-------|-------|-------------|-----------------|------------|
-| Reverse proxy | Brak | Caddy | Caddy | Caddy |
-| SSL | Brak | Let's Encrypt | Let's Encrypt | Let's Encrypt |
-| Hasla | Domyslne | 8 sekretow | 5 sekretow | 5 sekretow |
-| Domeny | localhost | 5 subdomen | 1 subdomena | 2 subdomeny |
-| Uslugi | 9 | 9 | 6 | 5 |
-| RAM | ~4GB | ~6GB | ~2GB | ~2GB |
-| n8n | Tak | Tak | Tak | Nie |
-| NocoDB | Tak | Tak | Nie | Tak |
-| MinIO | Tak | Tak | Nie | Tak |
-| Qdrant | Tak | Tak | Nie | Nie |
+| Cecha | Local | VPS (pelny) | VPS n8n+workers | VPS nocodb | VPS qdrant |
+|-------|-------|-------------|-----------------|------------|------------|
+| Reverse proxy | Brak | Caddy | Caddy | Caddy | Caddy |
+| SSL | Brak | Let's Encrypt | Let's Encrypt | Let's Encrypt | Let's Encrypt |
+| Hasla | Domyslne | 8 sekretow | 5 sekretow | 5 sekretow | 1 sekret |
+| Domeny | localhost | 5 subdomen | 1 subdomena | 2 subdomeny | 1 subdomena |
+| Uslugi | 9 | 9 | 6 | 5 | 2 |
+| RAM | ~4GB | ~6GB | ~2GB | ~2GB | ~2.5GB |
+| n8n | Tak | Tak | Tak | Nie | Nie |
+| NocoDB | Tak | Tak | Nie | Tak | Nie |
+| MinIO | Tak | Tak | Nie | Tak | Nie |
+| Qdrant | Tak | Tak | Nie | Nie | Tak |
 
 ## Uslugi i porty
 
-| Usluga | Port | Local | VPS (pelny) | VPS n8n+workers | VPS nocodb |
-|--------|------|-------|-------------|-----------------|------------|
-| n8n | 5678 | localhost:5678 | n8n.DOMAIN | n8n.DOMAIN | - |
-| nocodb | 8080 | localhost:8080 | nocodb.DOMAIN | - | nocodb.DOMAIN |
-| minio console | 9001 | localhost:9001 | minio.DOMAIN | - | minio.DOMAIN |
-| minio API | 9000 | localhost:9000 | api.minio.DOMAIN | - | api.minio.DOMAIN |
-| qdrant | 6333 | localhost:6333 | qdrant.DOMAIN | - | - |
-| pg_database | 5432 | - | - | - | - |
-| redis | 6379 | - | - | - | - |
-| caddy | 80, 443 | - | tak | tak | tak |
+| Usluga | Port | Local | VPS (pelny) | VPS n8n+workers | VPS nocodb | VPS qdrant |
+|--------|------|-------|-------------|-----------------|------------|------------|
+| n8n | 5678 | localhost:5678 | n8n.DOMAIN | n8n.DOMAIN | - | - |
+| nocodb | 8080 | localhost:8080 | nocodb.DOMAIN | - | nocodb.DOMAIN | - |
+| minio console | 9001 | localhost:9001 | minio.DOMAIN | - | minio.DOMAIN | - |
+| minio API | 9000 | localhost:9000 | api.minio.DOMAIN | - | api.minio.DOMAIN | - |
+| qdrant | 6333 | localhost:6333 | qdrant.DOMAIN | - | - | qdrant.DOMAIN |
+| pg_database | 5432 | - | - | - | - | - |
+| redis | 6379 | - | - | - | - | - |
+| caddy | 80, 443 | - | tak | tak | tak | tak |
 
 ## Konfiguracja
 

@@ -1,0 +1,79 @@
+# =============================================================================
+# DOCKER COMPOSE - QDRANT VECTOR DATABASE (VPS)
+# =============================================================================
+# Stack zawiera:
+# - Caddy (reverse proxy z automatycznym HTTPS)
+# - Qdrant (vector database)
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # REVERSE PROXY
+  # ===========================================================================
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./volumes/caddy_config/Caddyfile:/etc/caddy/Caddyfile
+      - ./volumes/caddy_data:/data
+      - ./volumes/caddy_config:/config
+    environment:
+      - CADDY_INGRESS_NETWORKS=caddy
+      - QDRANT_DOMAIN=${QDRANT_DOMAIN}
+    healthcheck:
+      test: ["CMD", "caddy", "version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - caddy
+
+  # ===========================================================================
+  # QDRANT (Vector Database)
+  # ===========================================================================
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY}
+      - QDRANT__SERVICE__JWT_RBAC=true
+      - QDRANT__LOG_LEVEL=INFO
+      - QDRANT__STORAGE__ON_DISK_PAYLOAD=true
+    volumes:
+      - ./volumes/qdrant_storage:/qdrant/storage
+    expose:
+      - "6333"
+      - "6334"
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c ':> /dev/tcp/localhost/6333' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          memory: 512M
+    networks:
+      - caddy
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  caddy:
+    external: true
