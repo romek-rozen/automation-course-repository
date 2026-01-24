@@ -9,18 +9,21 @@ curl -L -o repo.tar.gz https://github.com/romek-rozen/automation-course-reposito
 # Krok 2: Rozpakuj archiwum
 tar -xzf repo.tar.gz
 
-# Krok 3: Skopiuj stack do katalogu ~/docker
-mv automation-course-repository-main/course_vps_stack ~/docker
+# Krok 3: Utworz katalog docelowy
+mkdir -p ~/docker
 
-# Krok 4: Usun niepotrzebne pliki
+# Krok 4: Skopiuj zawartosc stacka
+cp -r automation-course-repository-main/course_vps_stack/. ~/docker/
+
+# Krok 5: Usun pobrane pliki
 rm -rf repo.tar.gz automation-course-repository-main
 
-# Krok 5: Przejdz do katalogu i uruchom instalator
+# Krok 6: Przejdz do katalogu i uruchom instalator
 cd ~/docker
 chmod +x init.sh setup.sh
 ./init.sh
 
-# Krok 6: Uruchom stack
+# Krok 7: Uruchom stack
 docker compose up -d
 ```
 
