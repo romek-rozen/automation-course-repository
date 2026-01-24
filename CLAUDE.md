@@ -94,28 +94,32 @@ docker compose pull && docker compose up -d
 docker compose exec pg_database pg_dump -U n8n n8n_db > backup.sql
 ```
 
-## Różnice między stackami
+## Roznice miedzy stackami
 
-| Cecha | Local | VPS |
-|-------|-------|-----|
-| Reverse proxy | Brak | Caddy |
-| SSL | Brak | Automatyczne (Let's Encrypt) |
-| Hasła | Domyślne (opcjonalnie silne) | Silne (wymagane) |
-| Domeny | localhost | Wymagane subdomeny |
-| Sieć Docker | bridge | external (caddy) |
+| Cecha | Local | VPS (pelny) | VPS n8n+workers |
+|-------|-------|-------------|-----------------|
+| Reverse proxy | Brak | Caddy | Caddy |
+| SSL | Brak | Let's Encrypt | Let's Encrypt |
+| Hasla | Domyslne | 8 sekretow | 4 sekrety |
+| Domeny | localhost | 5 subdomen | 1 subdomena |
+| Uslugi | 9 | 9 | 6 |
+| RAM | ~4GB | ~6GB | ~2GB |
+| NocoDB | Tak | Tak | Nie |
+| MinIO | Tak | Tak | Nie |
+| Qdrant | Tak | Tak | Nie |
 
-## Usługi i porty
+## Uslugi i porty
 
-| Usługa | Port | Local | VPS |
-|--------|------|-------|-----|
-| n8n | 5678 | localhost:5678 | n8n.DOMAIN |
-| nocodb | 8080 | localhost:8080 | nocodb.DOMAIN |
-| minio console | 9001 | localhost:9001 | minio.DOMAIN |
-| minio API | 9000 | localhost:9000 | api.minio.DOMAIN |
-| qdrant | 6333 | localhost:6333 | qdrant.DOMAIN |
-| pg_database | 5432 | - | - |
-| redis | 6379 | - | - |
-| caddy | 80, 443 | - | tak |
+| Usluga | Port | Local | VPS (pelny) | VPS n8n+workers |
+|--------|------|-------|-------------|-----------------|
+| n8n | 5678 | localhost:5678 | n8n.DOMAIN | n8n.DOMAIN |
+| nocodb | 8080 | localhost:8080 | nocodb.DOMAIN | - |
+| minio console | 9001 | localhost:9001 | minio.DOMAIN | - |
+| minio API | 9000 | localhost:9000 | api.minio.DOMAIN | - |
+| qdrant | 6333 | localhost:6333 | qdrant.DOMAIN | - |
+| pg_database | 5432 | - | - | - |
+| redis | 6379 | - | - | - |
+| caddy | 80, 443 | - | tak | tak |
 
 ## Konfiguracja
 

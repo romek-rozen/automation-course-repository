@@ -1,0 +1,87 @@
+# =============================================================================
+# CADDYFILE - N8N WITH WORKERS (VPS)
+# =============================================================================
+# Caddy automatycznie obsluguje certyfikaty SSL (Let's Encrypt)
+# Zmienna N8N_DOMAIN jest przekazywana z docker-compose.yml
+# =============================================================================
+
+# === N8N AUTOMATION ===
+{$N8N_DOMAIN:n8n.localhost} {
+    # Security Headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    }
+
+    # Websockets dla Editor UI
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+
+    # Webhooks produkcyjne - do webhook processor
+    @webhooks {
+        path /webhook/*
+    }
+
+    # Webhook testy - do main
+    @webhook-test {
+        path /webhook-test/*
+    }
+
+    # REST API webhooks
+    @rest-webhook {
+        path /rest/webhook/*
+    }
+
+    # Webhook testy ida do main
+    handle @webhook-test {
+        reverse_proxy n8n:5678 {
+            flush_interval -1
+        }
+    }
+
+    # Production webhooks ida do webhook processor
+    handle @webhooks {
+        reverse_proxy n8n-webhook:5678 {
+            flush_interval -1
+            lb_policy round_robin
+            lb_try_duration 30s
+        }
+    }
+
+    # REST webhooks tez do webhook processor
+    handle @rest-webhook {
+        reverse_proxy n8n-webhook:5678 {
+            flush_interval -1
+        }
+    }
+
+    # WebSockets
+    handle @websockets {
+        reverse_proxy n8n:5678
+    }
+
+    # Wszystko inne do main
+    handle {
+        reverse_proxy n8n:5678 {
+            flush_interval -1
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Kompresja
+    encode gzip
+
+    # Wieksze limity dla duzych payloadow
+    request_body {
+        max_size 100MB
+    }
+}

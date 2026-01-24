@@ -1,0 +1,21 @@
+# Plik konfiguracyjny (zawiera sekrety)
+.env
+
+# Plik z sekretami
+secrets.txt
+
+# Dane aplikacji (volumes)
+volumes/
+
+# Logi
+*.log
+
+# System
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

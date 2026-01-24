@@ -6,8 +6,9 @@ Repozytorium zawiera gotowe konfiguracje Docker do kursu z automatyzacji.
 
 ```
 .
-├── course_local_stack/   # Wersja do nauki na lokalnej maszynie
-└── course_vps_stack/     # Wersja produkcyjna na serwer VPS
+├── course_local_stack/           # Wersja do nauki na lokalnej maszynie
+├── course_vps_stack/             # Pelna wersja produkcyjna VPS
+└── course_vps_n8n_with_workers/  # Uproszczony stack tylko n8n + workers
 ```
 
 ## Ktora wersja?
@@ -15,7 +16,8 @@ Repozytorium zawiera gotowe konfiguracje Docker do kursu z automatyzacji.
 | Wersja | Kiedy uzyc |
 |--------|------------|
 | **local_stack** | Nauka, testy, development na wlasnym komputerze |
-| **vps_stack** | Wdrozenie na serwer z domena i SSL |
+| **vps_stack** | Pelne wdrozenie z NocoDB, MinIO, Qdrant |
+| **vps_n8n_with_workers** | Wdrozenie tylko n8n z workerami (lzejszy) |
 
 ## course_local_stack
 
@@ -61,6 +63,32 @@ docker compose up -d
 - VPS z Ubuntu 22.04+ / Debian 12+
 - Domena z rekordami DNS wskazujacymi na serwer
 - Docker i Docker Compose
+
+## course_vps_n8n_with_workers
+
+Uproszczony stack produkcyjny - tylko n8n z architektura workerow.
+
+**Zawiera:** Caddy, n8n (+ worker + webhook), PostgreSQL, Redis
+
+```bash
+# Instalacja na VPS
+git clone <repo-url>
+cd course_vps_n8n_with_workers
+chmod +x init.sh setup.sh
+./init.sh
+docker compose up -d
+```
+
+**Zalety vs pelny stack:**
+- Mniejsze zuzycie zasobow (~2GB RAM vs ~6GB)
+- Mniej sekretow do zarzadzania (4 vs 8)
+- Prostsza konfiguracja DNS (1 subdomena vs 5)
+- Szybsza instalacja
+
+**Skalowanie workerow:**
+```bash
+docker compose up -d --scale n8n-worker=3
+```
 
 ## Licencja
 
