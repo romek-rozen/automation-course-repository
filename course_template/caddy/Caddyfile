@@ -1,0 +1,176 @@
+# =============================================================================
+# CADDYFILE - SZABLON DO KURSU
+# =============================================================================
+# Caddy automatycznie obsluguje certyfikaty SSL (Let's Encrypt)
+# Zmienne srodowiskowe sa przekazywane z docker-compose.yml
+# =============================================================================
+
+# === NOCODB ===
+{$NOCODB_DOMAIN:nocodb.localhost} {
+    # Security Headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    }
+
+    # Proxy do NocoDB
+    reverse_proxy nocodb:8080
+
+    # Kompresja
+    encode gzip zstd
+
+    # Logi
+    log {
+        output file /var/log/caddy/nocodb.log {
+            roll_size 100mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+    }
+}
+
+# === MINIO CONSOLE ===
+{$MINIO_DOMAIN:minio.localhost} {
+    # Security Headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+
+    # Proxy do MinIO Console
+    reverse_proxy minio:9001 {
+        health_uri /minio/health/live
+        health_interval 30s
+        health_timeout 10s
+    }
+
+    # Logi
+    log {
+        output file /var/log/caddy/minio.log {
+            roll_size 100mb
+            roll_keep 5
+        }
+    }
+}
+
+# === MINIO API (dla aplikacji) ===
+api.{$MINIO_DOMAIN:api.minio.localhost} {
+    reverse_proxy minio:9000 {
+        health_uri /minio/health/live
+        health_interval 30s
+        health_timeout 10s
+    }
+    encode gzip
+}
+
+# === N8N AUTOMATION ===
+{$N8N_DOMAIN:n8n.localhost} {
+    # Security Headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    }
+
+    # Websockets dla Editor UI
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+
+    # Webhooks produkcyjne - do webhook processor
+    @webhooks {
+        path /webhook/*
+    }
+
+    # Webhook testy - do main
+    @webhook-test {
+        path /webhook-test/*
+    }
+
+    # REST API webhooks
+    @rest-webhook {
+        path /rest/webhook/*
+    }
+
+    # Webhook testy ida do main
+    handle @webhook-test {
+        reverse_proxy n8n:5678 {
+            flush_interval -1
+        }
+    }
+
+    # Production webhooks ida do webhook processor
+    handle @webhooks {
+        reverse_proxy n8n-webhook:5678 {
+            flush_interval -1
+            lb_policy round_robin
+            lb_try_duration 30s
+        }
+    }
+
+    # REST webhooks tez do webhook processor
+    handle @rest-webhook {
+        reverse_proxy n8n-webhook:5678 {
+            flush_interval -1
+        }
+    }
+
+    # WebSockets
+    handle @websockets {
+        reverse_proxy n8n:5678
+    }
+
+    # Wszystko inne do main
+    handle {
+        reverse_proxy n8n:5678 {
+            flush_interval -1
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Kompresja
+    encode gzip
+
+    # Wieksze limity dla duzych payloadow
+    request_body {
+        max_size 100MB
+    }
+}
+
+# === QDRANT (Vector Database) ===
+{$QDRANT_DOMAIN:qdrant.localhost} {
+    # Security Headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+
+    # Proxy do Qdrant REST API
+    reverse_proxy qdrant:6333
+
+    # Kompresja
+    encode gzip
+
+    # Logi
+    log {
+        output file /var/log/caddy/qdrant.log {
+            roll_size 100mb
+            roll_keep 5
+        }
+    }
+}
