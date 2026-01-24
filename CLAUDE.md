@@ -38,9 +38,10 @@ Repozytorium z konfiguracjami Docker do kursu z automatyzacji. Zawiera cztery we
 │
 └── course_vps_nocodb/             # Uproszczony VPS (tylko NocoDB + MinIO)
     ├── init.sh                    # Skrypt inicjalizacji
+    ├── init-data.sh               # Skrypt PostgreSQL (tworzy baze i usera)
     ├── setup.sh                   # Przygotowanie katalogow i sieci
     ├── docker-compose.yml         # 5 uslug (bez n8n, Qdrant)
-    ├── .env.example               # 4 sekrety
+    ├── .env.example               # 5 sekretow
     └── caddy/Caddyfile            # Routing nocodb + minio
 ```
 
@@ -110,7 +111,7 @@ docker compose up -d --scale n8n-worker=3  # Skalowanie workerow
 
 # === VPS NOCODB (uproszczony) ===
 cd course_vps_nocodb
-./init.sh                    # Inicjalizacja (2 domeny + 4 sekrety)
+./init.sh                    # Inicjalizacja (2 domeny + 5 sekretow)
 docker compose up -d
 
 # === Wspolne ===
@@ -125,7 +126,7 @@ docker compose exec pg_database pg_dump -U n8n n8n_db > backup.sql
 |-------|-------|-------------|-----------------|------------|
 | Reverse proxy | Brak | Caddy | Caddy | Caddy |
 | SSL | Brak | Let's Encrypt | Let's Encrypt | Let's Encrypt |
-| Hasla | Domyslne | 8 sekretow | 4 sekrety | 4 sekrety |
+| Hasla | Domyslne | 8 sekretow | 4 sekrety | 5 sekretow |
 | Domeny | localhost | 5 subdomen | 1 subdomena | 2 subdomeny |
 | Uslugi | 9 | 9 | 6 | 5 |
 | RAM | ~4GB | ~6GB | ~2GB | ~2GB |

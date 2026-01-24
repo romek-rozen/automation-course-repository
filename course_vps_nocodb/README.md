@@ -88,9 +88,20 @@ Propagacja DNS moze zajac do 24h (zwykle 5-30 min).
 | NOCODB_DOMAIN | Pelna domena NocoDB | nocodb.firma.pl |
 | MINIO_DOMAIN | Pelna domena MinIO | minio.firma.pl |
 | REDIS_PASSWORD | Haslo Redis | (generowane) |
-| POSTGRES_NOCODB_PASSWORD | Haslo PostgreSQL | (generowane) |
+| POSTGRES_PASSWORD | Haslo PostgreSQL superuser | (generowane) |
+| POSTGRES_NOCODB_PASSWORD | Haslo PostgreSQL dla NocoDB | (generowane) |
 | NC_JWT_SECRET | JWT Secret NocoDB | (generowane UUID) |
 | MINIO_ROOT_PASSWORD | Haslo MinIO | (generowane) |
+
+## PostgreSQL - struktura uzytkownikow
+
+```
+PostgreSQL
+├── postgres (SUPERUSER) ← tylko do administracji i backupow
+└── nocodb → nocodb_db   ← zwykly user z dostepem tylko do swojej bazy
+```
+
+Skrypt `init-data.sh` tworzy baze i uzytkownika przy pierwszym uruchomieniu PostgreSQL.
 
 ## Przydatne komendy
 
@@ -113,8 +124,8 @@ docker compose down
 # Aktualizacja
 docker compose pull && docker compose up -d
 
-# Backup bazy
-docker compose exec pg_database pg_dump -U nocodb nocodb_db > backup.sql
+# Backup bazy (uzyj superusera postgres)
+docker compose exec pg_database pg_dump -U postgres nocodb_db > backup.sql
 ```
 
 ## Struktura katalogow
@@ -124,6 +135,7 @@ course_vps_nocodb/
 ├── .env.example          # Szablon konfiguracji
 ├── docker-compose.yml    # Definicja uslug
 ├── init.sh               # Automatyczna konfiguracja
+├── init-data.sh          # Skrypt PostgreSQL (tworzy baze i usera)
 ├── setup.sh              # Przygotowanie srodowiska
 ├── caddy/
 │   └── Caddyfile         # Konfiguracja reverse proxy
@@ -192,7 +204,7 @@ docker compose up -d
 | Element | vps_stack | vps_nocodb |
 |---------|-----------|------------|
 | Uslugi | 9 | 5 |
-| Sekrety | 8 | 4 |
+| Sekrety | 8 | 5 |
 | Subdomeny | 5 | 2 (+1 opcjonalna api.minio) |
 | RAM | ~6GB | ~2GB |
 | n8n | Tak | Nie |
