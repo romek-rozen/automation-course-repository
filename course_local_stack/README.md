@@ -105,6 +105,7 @@ course_local_stack/
 ├── .env.example          # Szablon konfiguracji
 ├── docker-compose.yml    # Definicja uslug
 ├── init_local_stack.sh   # Skrypt inicjalizacji (uruchom pierwszy)
+├── init-data.sh          # Skrypt PostgreSQL (tworzy baze n8n)
 ├── setup.sh              # Skrypt przygotowujacy katalogi
 ├── README.md             # Ta dokumentacja
 └── volumes/              # Dane aplikacji (po init)

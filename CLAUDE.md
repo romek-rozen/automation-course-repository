@@ -14,12 +14,14 @@ Repozytorium z konfiguracjami Docker do kursu z automatyzacji. Zawiera dwie wers
 .
 ├── course_local_stack/       # Wersja lokalna (bez SSL, localhost)
 │   ├── init_local_stack.sh   # Skrypt inicjalizacji
+│   ├── init-data.sh          # Skrypt PostgreSQL (tworzy baze n8n)
 │   ├── setup.sh              # Przygotowanie katalogów
 │   ├── docker-compose.yml
 │   └── .env.example
 │
 └── course_vps_stack/         # Wersja VPS (Caddy + SSL)
     ├── init.sh               # Skrypt inicjalizacji z konfiguracją domen
+    ├── init-data.sh          # Skrypt PostgreSQL (tworzy baze n8n)
     ├── setup.sh              # Przygotowanie katalogów i sieci
     ├── docker-compose.yml
     ├── .env.example
@@ -93,4 +95,4 @@ Pliki `.env.example` zawierają wszystkie zmienne:
 - **Local**: domyślne wartości, opcjonalne generowanie przez `openssl rand -base64 32`
 - **VPS**: placeholdery, wymagane generowanie przez `init.sh`
 
-Redis używa osobnych baz: `/0` dla NocoDB, `/14` dla n8n queue.
+Redis używa osobnych baz: `/15` dla NocoDB, `/14` dla n8n queue.
