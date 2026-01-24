@@ -34,10 +34,10 @@ if [ ! -f .env ]; then
 fi
 
 # 2. Sprawdz czy .env ma placeholdery
-if grep -q "WPISZ_\|WYGENERUJ_\|twoja-domena.pl" .env; then
+if grep -v '^[[:space:]]*#' .env | grep -q "WPISZ_\|WYGENERUJ_\|twoja-domena.pl"; then
     echo -e "${RED}BLAD: Plik .env zawiera nieuzupelnione wartosci!${NC}"
     echo ""
-    grep -n "WPISZ_\|WYGENERUJ_\|twoja-domena.pl" .env || true
+    grep -n "WPISZ_\|WYGENERUJ_\|twoja-domena.pl" .env | grep -v '^[0-9]*:[[:space:]]*#' || true
     echo ""
     exit 1
 fi
