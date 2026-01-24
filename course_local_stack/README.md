@@ -3,12 +3,33 @@
 Wersja stacka Docker przeznaczona do nauki i testow na lokalnej maszynie.
 Zawiera pelny tryb kolejkowy (n8n + worker + webhook) jak wersja VPS.
 
-## Szybki start
+## Instalacja
+
+```bash
+# 1. Pobierz i rozpakuj do wybranego katalogu
+curl -L https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz | tar -xz
+mv automation-course-repository-main/course_local_stack ~/docker-local
+rm -rf automation-course-repository-main
+
+# 2. Przejdz do katalogu i uruchom instalator
+cd ~/docker-local
+chmod +x init_local_stack.sh setup.sh
+./init_local_stack.sh
+
+# 3. Uruchom stack
+docker compose up -d
+```
+
+> Po ~30-60 sekundach aplikacje beda dostepne pod adresami localhost.
+
+---
+
+## Szybki start (jesli masz juz pliki)
 
 ```bash
 # 1. Przygotuj srodowisko
-chmod +x setup.sh
-./setup.sh
+chmod +x init_local_stack.sh setup.sh
+./init_local_stack.sh
 
 # 2. Uruchom stack
 docker compose up -d
@@ -80,12 +101,13 @@ docker compose exec pg_database pg_dumpall -U nocodb > backup.sql
 
 ```
 course_local_stack/
-├── .env                  # Twoja konfiguracja (po setup.sh)
+├── .env                  # Twoja konfiguracja (po init)
 ├── .env.example          # Szablon konfiguracji
 ├── docker-compose.yml    # Definicja uslug
-├── setup.sh              # Skrypt przygotowujacy
+├── init_local_stack.sh   # Skrypt inicjalizacji (uruchom pierwszy)
+├── setup.sh              # Skrypt przygotowujacy katalogi
 ├── README.md             # Ta dokumentacja
-└── volumes/              # Dane aplikacji (po setup.sh)
+└── volumes/              # Dane aplikacji (po init)
     ├── nocodb/
     ├── n8n/
     │   ├── data/
@@ -131,7 +153,7 @@ docker system prune -a
 ### Reset do stanu poczatkowego
 ```bash
 docker compose down -v
-rm -rf volumes/
-./setup.sh
+rm -rf volumes/ .env
+./init_local_stack.sh
 docker compose up -d
 ```
