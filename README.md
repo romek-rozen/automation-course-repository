@@ -8,7 +8,9 @@ Repozytorium zawiera gotowe konfiguracje Docker do kursu z automatyzacji.
 .
 ├── course_local_stack/           # Wersja do nauki na lokalnej maszynie
 ├── course_vps_stack/             # Pelna wersja produkcyjna VPS
-└── course_vps_n8n_with_workers/  # Uproszczony stack tylko n8n + workers
+├── course_vps_n8n_with_workers/  # Uproszczony stack tylko n8n + workers
+├── course_vps_nocodb/            # Uproszczony stack tylko NocoDB + MinIO
+└── course_vps_qdrant/            # Uproszczony stack tylko Qdrant
 ```
 
 ## Ktora wersja?
@@ -17,7 +19,9 @@ Repozytorium zawiera gotowe konfiguracje Docker do kursu z automatyzacji.
 |--------|------------|
 | **local_stack** | Nauka, testy, development na wlasnym komputerze |
 | **vps_stack** | Pelne wdrozenie z NocoDB, MinIO, Qdrant |
-| **vps_n8n_with_workers** | Wdrozenie tylko n8n z workerami (lzejszy) |
+| **vps_n8n_with_workers** | Wdrozenie tylko n8n z workerami |
+| **vps_nocodb** | Wdrozenie tylko NocoDB z MinIO (baza danych no-code) |
+| **vps_qdrant** | Wdrozenie tylko Qdrant (vector database, RAG) |
 
 ## course_local_stack
 
@@ -88,6 +92,57 @@ docker compose up -d
 **Skalowanie workerow:**
 ```bash
 docker compose up -d --scale n8n-worker=3
+```
+
+## course_vps_nocodb
+
+Uproszczony stack produkcyjny - tylko NocoDB z MinIO do przechowywania plikow.
+
+**Zawiera:** Caddy, NocoDB, MinIO, PostgreSQL, Redis
+
+```bash
+# Instalacja na VPS
+curl -L https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz | tar -xz
+mv automation-course-repository-main/course_vps_nocodb ~/docker
+rm -rf automation-course-repository-main
+cd ~/docker
+chmod +x init.sh setup.sh
+./init.sh
+docker compose up -d
+```
+
+**Zalety:**
+- Lekki stack (~2GB RAM)
+- NocoDB jako no-code baza danych
+- MinIO do przechowywania zalacznikow
+- 2 subdomeny (nocodb + minio)
+
+## course_vps_qdrant
+
+Minimalny stack produkcyjny - tylko Qdrant (vector database).
+
+**Zawiera:** Caddy, Qdrant
+
+```bash
+# Instalacja na VPS
+curl -L https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz | tar -xz
+mv automation-course-repository-main/course_vps_qdrant ~/docker
+rm -rf automation-course-repository-main
+cd ~/docker
+chmod +x init.sh setup.sh
+./init.sh
+docker compose up -d
+```
+
+**Zalety:**
+- Najlzejszy stack (tylko 2 uslugi)
+- Qdrant autonomiczny - bez PostgreSQL/Redis
+- Jeden sekret (API_KEY generowany automatycznie)
+- Idealny do RAG, embeddings, wyszukiwania semantycznego
+
+**Test API:**
+```bash
+curl -H "api-key: $QDRANT_API_KEY" https://qdrant.twoja-domena.pl/collections
 ```
 
 ## Licencja
