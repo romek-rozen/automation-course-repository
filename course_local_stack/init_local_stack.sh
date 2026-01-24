@@ -109,6 +109,7 @@ if [[ "$GENERATE_PASSWORDS" =~ ^[Tt]$ ]]; then
     N8N_ENCRYPTION_KEY=$(openssl rand -base64 32 | tr -d '\n')
     NC_JWT_SECRET=$(openssl rand -hex 32 | tr -d '\n')
     MINIO_ROOT_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
+    QDRANT_API_KEY=$(openssl rand -base64 32 | tr -d '\n')
 
     # Funkcja do bezpiecznej podmiany (escape specjalnych znakow)
     safe_replace() {
@@ -132,6 +133,7 @@ if [[ "$GENERATE_PASSWORDS" =~ ^[Tt]$ ]]; then
     safe_replace "N8N_ENCRYPTION_KEY=local_encryption_key_32_characters" "N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}" .env
     safe_replace "NC_JWT_SECRET=local-jwt-secret-change-in-production" "NC_JWT_SECRET=${NC_JWT_SECRET}" .env
     safe_replace "MINIO_ROOT_PASSWORD=local_minio_password" "MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}" .env
+    safe_replace "QDRANT_API_KEY=local_qdrant_api_key" "QDRANT_API_KEY=${QDRANT_API_KEY}" .env
 
     echo -e "${GREEN}[OK]${NC} Silne hasla wygenerowane i zapisane"
     echo ""
@@ -143,6 +145,7 @@ if [[ "$GENERATE_PASSWORDS" =~ ^[Tt]$ ]]; then
     echo "  N8N_ENCRYPTION_KEY:      ${N8N_ENCRYPTION_KEY}"
     echo "  NC_JWT_SECRET:           ${NC_JWT_SECRET}"
     echo "  MINIO_ROOT_PASSWORD:     ${MINIO_ROOT_PASSWORD}"
+    echo "  QDRANT_API_KEY:          ${QDRANT_API_KEY}"
     echo ""
     echo -e "${YELLOW}UWAGA: Zapisz te hasla w bezpiecznym miejscu!${NC}"
 else

@@ -1,0 +1,64 @@
+# =============================================================================
+# CADDYFILE - NOCODB WITH MINIO (VPS)
+# =============================================================================
+# Caddy automatycznie obsluguje certyfikaty SSL (Let's Encrypt)
+# Zmienne sa przekazywane z docker-compose.yml
+# =============================================================================
+
+# === NOCODB ===
+{$NOCODB_DOMAIN:nocodb.localhost} {
+    # Security Headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    }
+
+    # Proxy do NocoDB
+    reverse_proxy nocodb:8080
+
+    # Kompresja
+    encode gzip zstd
+
+    # Wieksze limity dla uploadu plikow
+    request_body {
+        max_size 100MB
+    }
+}
+
+# === MINIO CONSOLE ===
+{$MINIO_DOMAIN:minio.localhost} {
+    # Security Headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+
+    # Proxy do MinIO Console
+    reverse_proxy minio:9001 {
+        health_uri /minio/health/live
+        health_interval 30s
+        health_timeout 10s
+    }
+
+    # Kompresja
+    encode gzip zstd
+}
+
+# === MINIO API (dla aplikacji) ===
+api.{$MINIO_DOMAIN:api.minio.localhost} {
+    # Proxy do MinIO API
+    reverse_proxy minio:9000 {
+        health_uri /minio/health/live
+        health_interval 30s
+        health_timeout 10s
+    }
+
+    # Kompresja
+    encode gzip
+}
