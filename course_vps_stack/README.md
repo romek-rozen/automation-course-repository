@@ -4,7 +4,7 @@
 
 ```bash
 # 1. Sklonuj repozytorium do ~/docker
-git clone https://github.com/romek-rozen/automation-stack.git ~/docker
+git clone https://github.com/romek-rozen/automation-course-repository.git ~/docker
 
 # 2. Przejdz do katalogu
 cd ~/docker/course_vps_stack
