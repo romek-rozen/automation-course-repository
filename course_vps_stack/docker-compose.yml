@@ -153,7 +153,7 @@ services:
     networks:
       - caddy
     environment:
-      - NC_DB=pg://pg_database:5432?d=${POSTGRES_DB}&u=nocodb&p=${POSTGRES_PASSWORD}
+      - NC_DB=pg://pg_database:5432?d=${POSTGRES_NOCODB_DB}&u=${POSTGRES_NOCODB_USER}&p=${POSTGRES_NOCODB_PASSWORD}
       - NC_AUTH_JWT_SECRET=${NC_JWT_SECRET}
       - NC_INVITE_ONLY_SIGNUP=true
       - NC_DISABLE_TELE=true
@@ -170,10 +170,13 @@ services:
     image: postgres:16
     env_file: .env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: nocodb
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # Zmienne dla init-data.sh (tworzenie bazy i usera dla n8n)
+      POSTGRES_DB: postgres
+      # Zmienne dla init-data.sh (tworzenie baz i userow dla aplikacji)
+      POSTGRES_NOCODB_DB: ${POSTGRES_NOCODB_DB}
+      POSTGRES_NOCODB_USER: ${POSTGRES_NOCODB_USER}
+      POSTGRES_NOCODB_PASSWORD: ${POSTGRES_NOCODB_PASSWORD}
       POSTGRES_N8N_DB: ${POSTGRES_N8N_DB}
       POSTGRES_N8N_USER: ${POSTGRES_N8N_USER}
       POSTGRES_N8N_PASSWORD: ${POSTGRES_N8N_PASSWORD}
@@ -182,7 +185,7 @@ services:
       - ./init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nocodb -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5

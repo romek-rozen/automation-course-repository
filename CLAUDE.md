@@ -4,66 +4,94 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Opis projektu
 
-Repozytorium z konfiguracjami Docker do kursu z automatyzacji. Zawiera dwie wersje stacka:
+Repozytorium z konfiguracjami Docker do kursu z automatyzacji. Zawiera trzy wersje stacka:
 - **course_local_stack/** - wersja do nauki na lokalnej maszynie
-- **course_vps_stack/** - wersja produkcyjna na serwer VPS
+- **course_vps_stack/** - pelna wersja produkcyjna na serwer VPS
+- **course_vps_n8n_with_workers/** - uproszczony stack VPS (tylko n8n + workers)
 
 ## Struktura repozytorium
 
 ```
 .
-├── course_local_stack/       # Wersja lokalna (bez SSL, localhost)
-│   ├── init_local_stack.sh   # Skrypt inicjalizacji
-│   ├── init-data.sh          # Skrypt PostgreSQL (tworzy baze n8n)
-│   ├── setup.sh              # Przygotowanie katalogów
+├── course_local_stack/            # Wersja lokalna (bez SSL, localhost)
+│   ├── init_local_stack.sh        # Skrypt inicjalizacji
+│   ├── init-data.sh               # Skrypt PostgreSQL (tworzy bazy i userow)
+│   ├── setup.sh                   # Przygotowanie katalogow
 │   ├── docker-compose.yml
 │   └── .env.example
 │
-└── course_vps_stack/         # Wersja VPS (Caddy + SSL)
-    ├── init.sh               # Skrypt inicjalizacji z konfiguracją domen
-    ├── init-data.sh          # Skrypt PostgreSQL (tworzy baze n8n)
-    ├── setup.sh              # Przygotowanie katalogów i sieci
-    ├── docker-compose.yml
-    ├── .env.example
-    └── caddy/Caddyfile
+├── course_vps_stack/              # Pelna wersja VPS (Caddy + SSL)
+│   ├── init.sh                    # Skrypt inicjalizacji z konfiguracja domen
+│   ├── init-data.sh               # Skrypt PostgreSQL (tworzy bazy i userow)
+│   ├── setup.sh                   # Przygotowanie katalogow i sieci
+│   ├── docker-compose.yml
+│   ├── .env.example
+│   └── caddy/Caddyfile
+│
+└── course_vps_n8n_with_workers/   # Uproszczony VPS (tylko n8n + workers)
+    ├── init.sh                    # Skrypt inicjalizacji
+    ├── setup.sh                   # Przygotowanie katalogow i sieci
+    ├── docker-compose.yml         # 6 uslug (bez NocoDB, MinIO, Qdrant)
+    ├── .env.example               # 4 sekrety
+    └── caddy/Caddyfile            # Tylko routing n8n
 ```
 
 ## Architektura stacka
 
+### Pelny stack (course_vps_stack)
+
 ```
-[Caddy - tylko VPS]
-    ├── n8n (główna instancja UI)
-    ├── n8n-worker (przetwarza kolejkę)
+[Caddy]
+    ├── n8n (UI + API)
+    ├── n8n-worker (przetwarza kolejke)
     ├── n8n-webhook (odbiera webhooki)
     ├── NocoDB (no-code database)
     ├── MinIO Console (S3 storage)
     └── Qdrant (vector database)
 
 PostgreSQL ← n8n, NocoDB
-Redis ← n8n (kolejki), NocoDB (cache)
+Redis ← n8n (kolejki /14), NocoDB (cache /15)
 MinIO ← NocoDB (pliki)
 Qdrant ← n8n (embeddings, RAG)
 ```
 
-n8n używa wzorca YAML anchor (`x-n8n-shared`) dla współdzielonej konfiguracji między instancjami.
+### Uproszczony stack (course_vps_n8n_with_workers)
+
+```
+[Caddy]
+    └── n8n (UI + API)
+        ├── n8n-worker (przetwarza kolejke)
+        └── n8n-webhook (odbiera webhooki)
+
+PostgreSQL ← n8n
+Redis ← n8n (kolejki Bull /14)
+```
+
+n8n uzywa wzorca YAML anchor (`x-n8n-shared`) dla wspoldzielonej konfiguracji miedzy instancjami.
 
 ## Komendy
 
 ```bash
 # === LOCAL STACK ===
 cd course_local_stack
-./init_local_stack.sh        # Inicjalizacja (opcjonalne silne hasła)
+./init_local_stack.sh        # Inicjalizacja (opcjonalne silne hasla)
 docker compose up -d
 
-# === VPS STACK ===
+# === VPS STACK (pelny) ===
 cd course_vps_stack
-./init.sh                    # Inicjalizacja (konfiguracja domen + generowanie haseł)
+./init.sh                    # Inicjalizacja (konfiguracja domen + generowanie hasel)
 docker compose up -d
 
-# === Wspólne ===
+# === VPS N8N WITH WORKERS (uproszczony) ===
+cd course_vps_n8n_with_workers
+./init.sh                    # Inicjalizacja (1 domena + 4 sekrety)
+docker compose up -d
+docker compose up -d --scale n8n-worker=3  # Skalowanie workerow
+
+# === Wspolne ===
 docker compose logs -f [nazwa-uslugi]
 docker compose pull && docker compose up -d
-docker compose exec pg_database pg_dumpall -U nocodb > backup.sql
+docker compose exec pg_database pg_dump -U n8n n8n_db > backup.sql
 ```
 
 ## Różnice między stackami
@@ -96,3 +124,14 @@ Pliki `.env.example` zawierają wszystkie zmienne:
 - **VPS**: placeholdery, wymagane generowanie przez `init.sh`
 
 Redis używa osobnych baz: `/15` dla NocoDB, `/14` dla n8n queue.
+
+## PostgreSQL - struktura użytkowników
+
+```
+PostgreSQL
+├── postgres (SUPERUSER) ← tylko do administracji i backupów
+├── nocodb → nocodb_db   ← zwykły user z dostępem tylko do swojej bazy
+└── n8n → n8n_db         ← zwykły user z dostępem tylko do swojej bazy
+```
+
+Skrypt `init-data.sh` tworzy bazy i użytkowników przy pierwszym uruchomieniu PostgreSQL.

@@ -104,6 +104,7 @@ if [[ "$GENERATE_PASSWORDS" =~ ^[Tt]$ ]]; then
 
     REDIS_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
     POSTGRES_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
+    POSTGRES_NOCODB_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
     POSTGRES_N8N_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
     N8N_ENCRYPTION_KEY=$(openssl rand -base64 32 | tr -d '\n')
     NC_JWT_SECRET=$(openssl rand -hex 32 | tr -d '\n')
@@ -125,7 +126,8 @@ if [[ "$GENERATE_PASSWORDS" =~ ^[Tt]$ ]]; then
 
     # Podmiana wartosci w .env
     safe_replace "REDIS_PASSWORD=local_redis_password" "REDIS_PASSWORD=${REDIS_PASSWORD}" .env
-    safe_replace "POSTGRES_PASSWORD=local_postgres_password" "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" .env
+    safe_replace "POSTGRES_PASSWORD=local_postgres_admin_password" "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" .env
+    safe_replace "POSTGRES_NOCODB_PASSWORD=local_nocodb_password" "POSTGRES_NOCODB_PASSWORD=${POSTGRES_NOCODB_PASSWORD}" .env
     safe_replace "POSTGRES_N8N_PASSWORD=local_n8n_password" "POSTGRES_N8N_PASSWORD=${POSTGRES_N8N_PASSWORD}" .env
     safe_replace "N8N_ENCRYPTION_KEY=local_encryption_key_32_characters" "N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}" .env
     safe_replace "NC_JWT_SECRET=local-jwt-secret-change-in-production" "NC_JWT_SECRET=${NC_JWT_SECRET}" .env
@@ -134,12 +136,13 @@ if [[ "$GENERATE_PASSWORDS" =~ ^[Tt]$ ]]; then
     echo -e "${GREEN}[OK]${NC} Silne hasla wygenerowane i zapisane"
     echo ""
     echo -e "${YELLOW}Wygenerowane hasla:${NC}"
-    echo "  REDIS_PASSWORD:       ${REDIS_PASSWORD}"
-    echo "  POSTGRES_PASSWORD:    ${POSTGRES_PASSWORD}"
-    echo "  POSTGRES_N8N_PASSWORD: ${POSTGRES_N8N_PASSWORD}"
-    echo "  N8N_ENCRYPTION_KEY:   ${N8N_ENCRYPTION_KEY}"
-    echo "  NC_JWT_SECRET:        ${NC_JWT_SECRET}"
-    echo "  MINIO_ROOT_PASSWORD:  ${MINIO_ROOT_PASSWORD}"
+    echo "  REDIS_PASSWORD:          ${REDIS_PASSWORD}"
+    echo "  POSTGRES_PASSWORD:       ${POSTGRES_PASSWORD}"
+    echo "  POSTGRES_NOCODB_PASSWORD: ${POSTGRES_NOCODB_PASSWORD}"
+    echo "  POSTGRES_N8N_PASSWORD:   ${POSTGRES_N8N_PASSWORD}"
+    echo "  N8N_ENCRYPTION_KEY:      ${N8N_ENCRYPTION_KEY}"
+    echo "  NC_JWT_SECRET:           ${NC_JWT_SECRET}"
+    echo "  MINIO_ROOT_PASSWORD:     ${MINIO_ROOT_PASSWORD}"
     echo ""
     echo -e "${YELLOW}UWAGA: Zapisz te hasla w bezpiecznym miejscu!${NC}"
 else

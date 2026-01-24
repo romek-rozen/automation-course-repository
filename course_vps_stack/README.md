@@ -320,7 +320,7 @@ docker compose up -d
 
 **PostgreSQL:**
 ```bash
-docker compose exec pg_database pg_dumpall -U nocodb > backup_postgres.sql
+docker compose exec pg_database pg_dumpall -U postgres > backup_postgres.sql
 ```
 
 ### Backup plikow

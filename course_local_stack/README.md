@@ -94,7 +94,7 @@ docker compose restart n8n
 docker compose pull && docker compose up -d
 
 # Backup PostgreSQL
-docker compose exec pg_database pg_dumpall -U nocodb > backup.sql
+docker compose exec pg_database pg_dumpall -U postgres > backup.sql
 ```
 
 ## Struktura katalogow
@@ -105,7 +105,7 @@ course_local_stack/
 ├── .env.example          # Szablon konfiguracji
 ├── docker-compose.yml    # Definicja uslug
 ├── init_local_stack.sh   # Skrypt inicjalizacji (uruchom pierwszy)
-├── init-data.sh          # Skrypt PostgreSQL (tworzy baze n8n)
+├── init-data.sh          # Skrypt PostgreSQL (tworzy bazy i userow)
 ├── setup.sh              # Skrypt przygotowujacy katalogi
 ├── README.md             # Ta dokumentacja
 └── volumes/              # Dane aplikacji (po init)
