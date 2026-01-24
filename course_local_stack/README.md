@@ -109,17 +109,6 @@ course_local_stack/
 | API Keys | Wymagane | Brak |
 | Limity zasobow | Tak | Brak |
 
-## Migracja na VPS
-
-Gdy bedziesz gotowy do wdrozenia na serwer:
-
-1. Uzyj `course_vps_stack/` zamiast tej wersji
-2. Workflow z n8n mozesz wyeksportowac: Menu > Export All
-3. Dane NocoDB wymagaja backupu PostgreSQL:
-   ```bash
-   docker compose exec pg_database pg_dump -U nocodb nocodb_db > nocodb_backup.sql
-   ```
-
 ## Rozwiazywanie problemow
 
 ### Usluga nie startuje
