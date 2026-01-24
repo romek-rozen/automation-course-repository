@@ -37,34 +37,25 @@ Stack produkcyjny NocoDB z MinIO na serwer VPS z automatycznym SSL.
 
 ## Instalacja
 
-### Automatyczna (zalecana)
-
 ```bash
-# 1. Sklonuj/pobierz stack
-git clone <repo-url>
-cd course_vps_nocodb
+# Krok 1: Pobierz repozytorium
+curl -L -o repo.tar.gz https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz
 
-# 2. Uruchom instalator
+# Krok 2: Rozpakuj archiwum
+tar -xzf repo.tar.gz
+
+# Krok 3: Skopiuj stack do katalogu ~/docker
+mv automation-course-repository-main/course_vps_nocodb ~/docker
+
+# Krok 4: Usun niepotrzebne pliki
+rm -rf repo.tar.gz automation-course-repository-main
+
+# Krok 5: Przejdz do katalogu i uruchom instalator
+cd ~/docker
 chmod +x init.sh setup.sh
 ./init.sh
 
-# 3. Skonfiguruj DNS (rekordy A)
-#    - nocodb.twoja-domena.pl -> IP_SERWERA
-#    - minio.twoja-domena.pl -> IP_SERWERA
-
-# 4. Uruchom stack
-docker compose up -d
-```
-
-### Reczna
-
-```bash
-cd course_vps_nocodb
-cp .env.example .env
-nano .env  # uzupelnij wszystkie wartosci
-
-chmod +x setup.sh
-./setup.sh
+# Krok 6: Uruchom stack
 docker compose up -d
 ```
 
