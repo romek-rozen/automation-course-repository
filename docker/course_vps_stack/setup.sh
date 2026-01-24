@@ -33,6 +33,7 @@ if [ ! -f .env ]; then
     echo "  4. Uruchom ten skrypt ponownie"
     echo ""
     echo "Przykladowe komendy do generowania hasel:"
+    echo "  openssl rand -hex 32       # dla hasel (bezpieczne dla URL)"
     echo "  openssl rand -base64 32    # dla kluczy szyfrowania"
     echo "  uuidgen                    # dla JWT secrets"
     echo ""

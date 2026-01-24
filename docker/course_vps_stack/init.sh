@@ -164,7 +164,7 @@ echo -e "${GREEN}[OK]${NC} Domeny skonfigurowane"
 echo ""
 echo -e "${CYAN}[4/7] Generowanie sekretow...${NC}"
 
-REDIS_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
+REDIS_PASSWORD=$(openssl rand -hex 32)
 POSTGRES_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
 POSTGRES_NOCODB_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
 POSTGRES_N8N_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
