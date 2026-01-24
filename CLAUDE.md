@@ -4,192 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Opis projektu
 
-Repozytorium z konfiguracjami Docker do kursu z automatyzacji. Zawiera piec wersji stacka:
-- **docker/course_local_stack/** - wersja do nauki na lokalnej maszynie
-- **docker/course_vps_stack/** - pelna wersja produkcyjna na serwer VPS
-- **docker/course_vps_n8n_with_workers/** - uproszczony stack VPS (tylko n8n + workers)
-- **docker/course_vps_nocodb/** - uproszczony stack VPS (tylko NocoDB + MinIO)
-- **docker/course_vps_qdrant/** - uproszczony stack VPS (tylko Qdrant)
+Repozytorium z konfiguracjami Docker do kursu z automatyzacji.
 
-## Struktura repozytorium
+## Dostepne stacki
 
-```
-.
-├── docker/                        # Katalog z konfiguracjami Docker
-│   ├── course_local_stack/        # Wersja lokalna (bez SSL, localhost)
-│   │   ├── init_local_stack.sh    # Skrypt inicjalizacji
-│   │   ├── init-data.sh           # Skrypt PostgreSQL (tworzy bazy i userow)
-│   │   ├── setup.sh               # Przygotowanie katalogow
-│   │   ├── docker-compose.yml
-│   │   └── .env.example
-│   │
-│   ├── course_vps_stack/          # Pelna wersja VPS (Caddy + SSL)
-│   │   ├── init.sh                # Skrypt inicjalizacji z konfiguracja domen
-│   │   ├── init-data.sh           # Skrypt PostgreSQL (tworzy bazy i userow)
-│   │   ├── setup.sh               # Przygotowanie katalogow i sieci
-│   │   ├── docker-compose.yml
-│   │   ├── .env.example
-│   │   └── caddy/Caddyfile
-│   │
-│   ├── course_vps_n8n_with_workers/  # Uproszczony VPS (tylko n8n + workers)
-│   │   ├── init.sh                # Skrypt inicjalizacji
-│   │   ├── init-data.sh           # Skrypt PostgreSQL (tworzy baze i usera)
-│   │   ├── setup.sh               # Przygotowanie katalogow i sieci
-│   │   ├── docker-compose.yml     # 6 uslug (bez NocoDB, MinIO, Qdrant)
-│   │   ├── .env.example           # 5 sekretow
-│   │   └── caddy/Caddyfile        # Tylko routing n8n
-│   │
-│   ├── course_vps_nocodb/         # Uproszczony VPS (tylko NocoDB + MinIO)
-│   │   ├── init.sh                # Skrypt inicjalizacji
-│   │   ├── init-data.sh           # Skrypt PostgreSQL (tworzy baze i usera)
-│   │   ├── setup.sh               # Przygotowanie katalogow i sieci
-│   │   ├── docker-compose.yml     # 5 uslug (bez n8n, Qdrant)
-│   │   ├── .env.example           # 5 sekretow
-│   │   └── caddy/Caddyfile        # Routing nocodb + minio
-│   │
-│   └── course_vps_qdrant/         # Uproszczony VPS (tylko Qdrant)
-│       ├── init.sh                # Skrypt inicjalizacji
-│       ├── setup.sh               # Przygotowanie katalogow i sieci
-│       ├── docker-compose.yml     # 2 uslugi (Caddy + Qdrant)
-│       ├── .env.example           # 1 sekret (QDRANT_API_KEY)
-│       └── caddy/Caddyfile        # Routing qdrant.DOMAIN
-│
-└── README.md
-```
+| Stack | Opis |
+|-------|------|
+| `docker/course_local_stack/` | Wersja lokalna (bez SSL, localhost) |
+| `docker/course_vps_stack/` | Pelna wersja VPS (Caddy + SSL) |
+| `docker/course_vps_n8n_with_workers/` | Uproszczony VPS (tylko n8n + workers) |
+| `docker/course_vps_nocodb/` | Uproszczony VPS (tylko NocoDB + MinIO) |
+| `docker/course_vps_qdrant/` | Uproszczony VPS (tylko Qdrant) |
 
-## Architektura stacka
+## Szczegoly techniczne
 
-### Pelny stack (course_vps_stack)
-
-```
-[Caddy]
-    ├── n8n (UI + API)
-    ├── n8n-worker (przetwarza kolejke)
-    ├── n8n-webhook (odbiera webhooki)
-    ├── NocoDB (no-code database)
-    ├── MinIO Console (S3 storage)
-    └── Qdrant (vector database)
-
-PostgreSQL ← n8n, NocoDB
-Redis ← n8n (kolejki /14), NocoDB (cache /15)
-MinIO ← NocoDB (pliki)
-Qdrant ← n8n (embeddings, RAG)
-```
-
-### Uproszczony stack n8n (course_vps_n8n_with_workers)
-
-```
-[Caddy]
-    └── n8n (UI + API)
-        ├── n8n-worker (przetwarza kolejke)
-        └── n8n-webhook (odbiera webhooki)
-
-PostgreSQL ← n8n
-Redis ← n8n (kolejki Bull /14)
-```
-
-n8n uzywa wzorca YAML anchor (`x-n8n-shared`) dla wspoldzielonej konfiguracji miedzy instancjami.
-
-### Uproszczony stack NocoDB (course_vps_nocodb)
-
-```
-[Caddy]
-    ├── NocoDB (no-code database)
-    └── MinIO Console (S3 storage)
-
-PostgreSQL ← NocoDB
-Redis ← NocoDB (cache /15)
-MinIO ← NocoDB (pliki/attachmenty)
-```
-
-### Uproszczony stack Qdrant (course_vps_qdrant)
-
-```
-[Caddy]
-    └── Qdrant (vector database)
-
-Qdrant jest autonomiczny - nie wymaga PostgreSQL ani Redis.
-Autentykacja przez API_KEY + JWT RBAC.
-```
-
-## Komendy
-
-```bash
-# === LOCAL STACK ===
-cd docker/course_local_stack
-./init_local_stack.sh        # Inicjalizacja (opcjonalne silne hasla)
-docker compose up -d
-
-# === VPS STACK (pelny) ===
-cd docker/course_vps_stack
-./init.sh                    # Inicjalizacja (konfiguracja domen + generowanie hasel)
-docker compose up -d
-
-# === VPS N8N WITH WORKERS (uproszczony) ===
-cd docker/course_vps_n8n_with_workers
-./init.sh                    # Inicjalizacja (1 domena + 5 sekretow)
-docker compose up -d
-docker compose up -d --scale n8n-worker=3  # Skalowanie workerow
-
-# === VPS NOCODB (uproszczony) ===
-cd docker/course_vps_nocodb
-./init.sh                    # Inicjalizacja (2 domeny + 5 sekretow)
-docker compose up -d
-
-# === VPS QDRANT (uproszczony) ===
-cd docker/course_vps_qdrant
-./init.sh                    # Inicjalizacja (1 domena + 1 sekret)
-docker compose up -d
-
-# === Wspolne ===
-docker compose logs -f [nazwa-uslugi]
-docker compose pull && docker compose up -d
-docker compose exec pg_database pg_dump -U postgres n8n_db > backup.sql
-```
-
-## Roznice miedzy stackami
-
-| Cecha | Local | VPS (pelny) | VPS n8n+workers | VPS nocodb | VPS qdrant |
-|-------|-------|-------------|-----------------|------------|------------|
-| Reverse proxy | Brak | Caddy | Caddy | Caddy | Caddy |
-| SSL | Brak | Let's Encrypt | Let's Encrypt | Let's Encrypt | Let's Encrypt |
-| Hasla | Domyslne | 8 sekretow | 5 sekretow | 5 sekretow | 1 sekret |
-| Domeny | localhost | 5 subdomen | 1 subdomena | 2 subdomeny | 1 subdomena |
-| Uslugi | 9 | 9 | 6 | 5 | 2 |
-| RAM | ~4GB | ~6GB | ~2GB | ~2GB | ~2.5GB |
-| n8n | Tak | Tak | Tak | Nie | Nie |
-| NocoDB | Tak | Tak | Nie | Tak | Nie |
-| MinIO | Tak | Tak | Nie | Tak | Nie |
-| Qdrant | Tak | Tak | Nie | Nie | Tak |
-
-## Uslugi i porty
-
-| Usluga | Port | Local | VPS (pelny) | VPS n8n+workers | VPS nocodb | VPS qdrant |
-|--------|------|-------|-------------|-----------------|------------|------------|
-| n8n | 5678 | localhost:5678 | n8n.DOMAIN | n8n.DOMAIN | - | - |
-| nocodb | 8080 | localhost:8080 | nocodb.DOMAIN | - | nocodb.DOMAIN | - |
-| minio console | 9001 | localhost:9001 | minio.DOMAIN | - | minio.DOMAIN | - |
-| minio API | 9000 | localhost:9000 | api.minio.DOMAIN | - | api.minio.DOMAIN | - |
-| qdrant | 6333 | localhost:6333 | qdrant.DOMAIN | - | - | qdrant.DOMAIN |
-| pg_database | 5432 | - | - | - | - | - |
-| redis | 6379 | - | - | - | - | - |
-| caddy | 80, 443 | - | tak | tak | tak | tak |
-
-## Konfiguracja
-
-Pliki `.env.example` zawierają wszystkie zmienne:
-- **Local**: domyślne wartości, opcjonalne generowanie przez `openssl rand -base64 32`
-- **VPS**: placeholdery, wymagane generowanie przez `init.sh`
-
-Redis używa osobnych baz: `/15` dla NocoDB, `/14` dla n8n queue.
-
-## PostgreSQL - struktura użytkowników
-
-```
-PostgreSQL
-├── postgres (SUPERUSER) ← tylko do administracji i backupów
-├── nocodb → nocodb_db   ← zwykły user z dostępem tylko do swojej bazy
-└── n8n → n8n_db         ← zwykły user z dostępem tylko do swojej bazy
-```
-
-Skrypt `init-data.sh` tworzy bazy i użytkowników przy pierwszym uruchomieniu PostgreSQL.
+Pelna dokumentacja techniczna (architektura, komendy, porty, konfiguracja) znajduje sie w:
+- [docker/CLAUDE.md](docker/CLAUDE.md) - szczegoly dla Claude
+- [docker/README.md](docker/README.md) - dokumentacja dla uzytkownikow
