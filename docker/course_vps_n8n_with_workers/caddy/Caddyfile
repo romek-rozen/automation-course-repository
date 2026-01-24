@@ -42,6 +42,10 @@
     handle @webhook-test {
         reverse_proxy n8n:5678 {
             flush_interval -1
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
         }
     }
 
@@ -51,6 +55,10 @@
             flush_interval -1
             lb_policy round_robin
             lb_try_duration 30s
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
         }
     }
 
@@ -58,12 +66,21 @@
     handle @rest-webhook {
         reverse_proxy n8n-webhook:5678 {
             flush_interval -1
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
         }
     }
 
     # WebSockets
     handle @websockets {
-        reverse_proxy n8n:5678
+        reverse_proxy n8n:5678 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
     }
 
     # Wszystko inne do main
@@ -71,8 +88,8 @@
         reverse_proxy n8n:5678 {
             flush_interval -1
             header_up Host {host}
-            header_up X-Real-IP {remote}
-            header_up X-Forwarded-For {remote}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
             header_up X-Forwarded-Proto {scheme}
         }
     }
