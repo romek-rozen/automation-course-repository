@@ -34,6 +34,52 @@ docker compose up -d
 
 ---
 
+## Instalacja (Windows)
+
+### Wymagania
+- Docker Desktop dla Windows (z WSL 2)
+- PowerShell
+
+### Krok 1: Pobierz repozytorium
+
+**Opcja A - przez Git:**
+```powershell
+git clone https://github.com/romek-rozen/automation-course-repository.git
+cd automation-course-repository\docker\course_local_stack
+```
+
+**Opcja B - bez Git:**
+1. Pobierz ZIP: https://github.com/romek-rozen/automation-course-repository/archive/main.zip
+2. Rozpakuj archiwum
+3. Otwórz PowerShell w katalogu `automation-course-repository-main\docker\course_local_stack`
+
+### Krok 2: Przygotuj srodowisko
+
+```powershell
+# Skopiuj plik konfiguracyjny
+Copy-Item .env.example .env
+
+# Utworz katalogi dla danych
+mkdir -Force volumes\nocodb
+mkdir -Force volumes\n8n\data
+mkdir -Force volumes\n8n\local_files
+mkdir -Force volumes\redis_data
+mkdir -Force volumes\minio_data
+mkdir -Force volumes\qdrant_storage
+mkdir -Force volumes\db_data
+```
+
+### Krok 3: Uruchom stack
+
+```powershell
+docker compose up -d
+```
+
+> Po ~30-60 sekundach aplikacje beda dostepne pod adresami localhost.
+> Domyslne hasla z pliku .env sa wystarczajace do nauki. Mozesz je zmienic edytujac plik .env przed uruchomieniem stacka.
+
+---
+
 ## Szybki start (jesli masz juz pliki)
 
 ```bash
