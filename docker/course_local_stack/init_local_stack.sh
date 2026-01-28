@@ -102,14 +102,16 @@ if [[ "$GENERATE_PASSWORDS" =~ ^[Tt]$ ]]; then
     echo ""
     echo "Generowanie silnych hasel..."
 
-    REDIS_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
-    POSTGRES_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
-    POSTGRES_NOCODB_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
-    POSTGRES_N8N_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
+    # URL-safe hasla (hex) - do connection stringow i URL
+    REDIS_PASSWORD=$(openssl rand -hex 32)
+    POSTGRES_PASSWORD=$(openssl rand -hex 32)
+    POSTGRES_NOCODB_PASSWORD=$(openssl rand -hex 32)
+    POSTGRES_N8N_PASSWORD=$(openssl rand -hex 32)
+    MINIO_ROOT_PASSWORD=$(openssl rand -hex 32)
+    QDRANT_API_KEY=$(openssl rand -hex 32)
+    # Klucze szyfrowania (base64) - nie sa uzywane w URL
     N8N_ENCRYPTION_KEY=$(openssl rand -base64 32 | tr -d '\n')
-    NC_JWT_SECRET=$(openssl rand -hex 32 | tr -d '\n')
-    MINIO_ROOT_PASSWORD=$(openssl rand -base64 32 | tr -d '\n')
-    QDRANT_API_KEY=$(openssl rand -base64 32 | tr -d '\n')
+    NC_JWT_SECRET=$(openssl rand -hex 32)
 
     # Funkcja do bezpiecznej podmiany (escape specjalnych znakow)
     safe_replace() {
