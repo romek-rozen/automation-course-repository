@@ -7,11 +7,13 @@ Repozytorium zawiera gotowe konfiguracje Docker do kursu z automatyzacji.
 ```
 .
 └── docker/
-    ├── course_local_stack/           # Wersja do nauki na lokalnej maszynie
-    ├── course_vps_stack/             # Pelna wersja produkcyjna VPS
-    ├── course_vps_n8n_with_workers/  # Uproszczony stack tylko n8n + workers
-    ├── course_vps_nocodb/            # Uproszczony stack tylko NocoDB + MinIO
-    └── course_vps_qdrant/            # Uproszczony stack tylko Qdrant
+    ├── course_local_stack/              # Wersja do nauki na lokalnej maszynie
+    ├── course_vps_stack/                # Pelna wersja produkcyjna VPS (z workerami)
+    ├── course_vps_stack_light/          # Light VPS - bez workerow, single n8n
+    ├── course_vps_n8n_with_workers/     # Tylko n8n z workerami (queue mode)
+    ├── course_vps_n8n_without_workers/  # Tylko n8n bez workerow (single instance)
+    ├── course_vps_nocodb/               # Tylko NocoDB + MinIO
+    └── course_vps_qdrant/               # Tylko Qdrant
 ```
 
 ## Ktora wersja?
@@ -19,8 +21,10 @@ Repozytorium zawiera gotowe konfiguracje Docker do kursu z automatyzacji.
 | Wersja | Kiedy uzyc |
 |--------|------------|
 | **local_stack** | Nauka, testy, development na wlasnym komputerze |
-| **vps_stack** | Pelne wdrozenie z NocoDB, MinIO, Qdrant |
-| **vps_n8n_with_workers** | Wdrozenie tylko n8n z workerami |
+| **vps_stack** | Pelne wdrozenie z workerami (duzy serwer, ~6GB RAM) |
+| **vps_stack_light** | Pelne wdrozenie bez workerow (mniejszy serwer, ~4GB RAM) |
+| **vps_n8n_with_workers** | Tylko n8n z workerami (queue mode) |
+| **vps_n8n_without_workers** | Tylko n8n bez workerow (single instance) |
 | **vps_nocodb** | Wdrozenie tylko NocoDB z MinIO (baza danych no-code) |
 | **vps_qdrant** | Wdrozenie tylko Qdrant (vector database, RAG) |
 
@@ -97,6 +101,42 @@ docker compose up -d
 - Domena z rekordami DNS wskazujacymi na serwer
 - Docker i Docker Compose
 
+## course_vps_stack_light
+
+Light wersja produkcyjna - wszystkie uslugi ale bez workerow n8n (single instance).
+
+**Zawiera:** Caddy, n8n (single), NocoDB, MinIO, Qdrant, PostgreSQL, Redis
+
+```bash
+# Krok 1: Pobierz repozytorium
+curl -L -o repo.tar.gz https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz
+
+# Krok 2: Rozpakuj archiwum
+tar -xzf repo.tar.gz
+
+# Krok 3: Utworz katalog docelowy
+mkdir -p ~/docker
+
+# Krok 4: Skopiuj zawartosc stacka
+cp -r automation-course-repository-main/docker/course_vps_stack_light/. ~/docker/
+
+# Krok 5: Usun pobrane pliki
+rm -rf repo.tar.gz automation-course-repository-main
+
+# Krok 6: Przejdz do katalogu i uruchom instalator
+cd ~/docker
+chmod +x init.sh setup.sh
+./init.sh
+
+# Krok 7: Uruchom stack
+docker compose up -d
+```
+
+**Zalety vs pelny stack:**
+- Mniejsze zuzycie zasobow (~4GB RAM vs ~6GB)
+- Prostsza architektura (brak queue mode)
+- Wszystkie uslugi dostepne (n8n, NocoDB, MinIO, Qdrant)
+
 ## course_vps_n8n_with_workers
 
 Uproszczony stack produkcyjny - tylko n8n z architektura workerow.
@@ -138,6 +178,42 @@ docker compose up -d
 ```bash
 docker compose up -d --scale n8n-worker=3
 ```
+
+## course_vps_n8n_without_workers
+
+Uproszczony stack produkcyjny - tylko n8n bez workerow (single instance).
+
+**Zawiera:** Caddy, n8n (single), PostgreSQL, Redis
+
+```bash
+# Krok 1: Pobierz repozytorium
+curl -L -o repo.tar.gz https://github.com/romek-rozen/automation-course-repository/archive/main.tar.gz
+
+# Krok 2: Rozpakuj archiwum
+tar -xzf repo.tar.gz
+
+# Krok 3: Utworz katalog docelowy
+mkdir -p ~/docker
+
+# Krok 4: Skopiuj zawartosc stacka
+cp -r automation-course-repository-main/docker/course_vps_n8n_without_workers/. ~/docker/
+
+# Krok 5: Usun pobrane pliki
+rm -rf repo.tar.gz automation-course-repository-main
+
+# Krok 6: Przejdz do katalogu i uruchom instalator
+cd ~/docker
+chmod +x init.sh setup.sh
+./init.sh
+
+# Krok 7: Uruchom stack
+docker compose up -d
+```
+
+**Zalety vs n8n z workerami:**
+- Mniejsze zuzycie zasobow (~1.5GB RAM vs ~2GB)
+- Prostsza architektura (brak queue mode)
+- Mniej komponentow do monitorowania
 
 ## course_vps_nocodb
 
