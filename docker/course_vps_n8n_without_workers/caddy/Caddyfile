@@ -1,0 +1,54 @@
+# =============================================================================
+# CADDYFILE - N8N WITHOUT WORKERS (VPS)
+# =============================================================================
+# Caddy automatycznie obsluguje certyfikaty SSL (Let's Encrypt)
+# Zmienna N8N_DOMAIN jest przekazywana z docker-compose.yml
+# =============================================================================
+
+# === N8N AUTOMATION ===
+{$N8N_DOMAIN:n8n.localhost} {
+    # Security Headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    }
+
+    # Websockets dla Editor UI
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+
+    # WebSockets
+    handle @websockets {
+        reverse_proxy n8n:5678 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Wszystko (w tym webhooks) do single n8n
+    handle {
+        reverse_proxy n8n:5678 {
+            flush_interval -1
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Kompresja
+    encode gzip
+
+    # Wieksze limity dla duzych payloadow
+    request_body {
+        max_size 100MB
+    }
+}
