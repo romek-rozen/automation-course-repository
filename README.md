@@ -13,8 +13,7 @@ Repozytorium zawiera gotowe konfiguracje Docker do kursu z automatyzacji.
     ├── course_vps_n8n_with_workers/     # Tylko n8n z workerami (queue mode)
     ├── course_vps_n8n_without_workers/  # Tylko n8n bez workerow (single instance)
     ├── course_vps_nocodb/               # Tylko NocoDB + MinIO
-    ├── course_vps_qdrant/               # Tylko Qdrant
-    └── course_vps_elestio_light/        # Light stack dla Elestio CI/CD
+    └── course_vps_qdrant/               # Tylko Qdrant
 ```
 
 ## Ktora wersja?
@@ -28,7 +27,7 @@ Repozytorium zawiera gotowe konfiguracje Docker do kursu z automatyzacji.
 | **vps_n8n_without_workers** | Tylko n8n bez workerow (single instance) |
 | **vps_nocodb** | Wdrozenie tylko NocoDB z MinIO (baza danych no-code) |
 | **vps_qdrant** | Wdrozenie tylko Qdrant (vector database, RAG) |
-| **vps_elestio_light** | Pelny stack dla Elestio CI/CD (bez Caddy, bez workerow) |
+
 
 ## course_local_stack
 
@@ -295,18 +294,6 @@ docker compose up -d
 ```bash
 curl -H "api-key: $QDRANT_API_KEY" https://qdrant.twoja-domena.pl/collections
 ```
-
-## course_vps_elestio_light
-
-Light stack dla Elestio CI/CD - bez Caddy (Elestio zapewnia Nginx reverse proxy + SSL).
-
-**Zawiera:** n8n (single), NocoDB, MinIO, PostgreSQL, Redis
-
-**Roznice vs vps_stack_light:**
-- Brak Caddy - Elestio zapewnia reverse proxy
-- Porty bindowane na 172.17.0.1 (Docker bridge)
-- Brak init.sh/setup.sh - Elestio CI/CD zarzadza konfiguracaja
-- Zmienne w .env wstrzykiwane przez panel Elestio
 
 ## Licencja
 

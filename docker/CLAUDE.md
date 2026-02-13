@@ -60,9 +60,6 @@ docker/
 │   ├── .env.example              # 1 sekret (QDRANT_API_KEY)
 │   └── caddy/Caddyfile           # Routing qdrant.DOMAIN
 │
-└── course_vps_elestio_light/     # Light stack dla Elestio CI/CD
-    ├── docker-compose.yml        # 6 uslug (bez Caddy/Qdrant, porty na 172.17.0.1, pg-init)
-    └── .env.example              # Zmienne dla Elestio CI/CD
 ```
 
 ## Architektura stackow
@@ -149,22 +146,6 @@ Qdrant jest autonomiczny - nie wymaga PostgreSQL ani Redis.
 Autentykacja przez API_KEY + JWT RBAC.
 ```
 
-### Elestio Light stack (course_vps_elestio_light)
-
-```
-[Elestio Nginx] (external)
-    ├── n8n (172.17.0.1:5678)
-    ├── NocoDB (172.17.0.1:8080)
-    └── MinIO Console (172.17.0.1:9001)
-
-PostgreSQL ← n8n, NocoDB
-Redis ← NocoDB (cache /15), n8n (workflow)
-MinIO ← NocoDB (pliki)
-```
-
-Jak light stack, ale bez Caddy - Elestio zapewnia reverse proxy + SSL.
-Porty bindowane na 172.17.0.1 (Docker bridge IP).
-
 ## Komendy
 
 ```bash
@@ -204,11 +185,6 @@ cd docker/course_vps_qdrant
 ./init.sh                    # Inicjalizacja (1 domena + 1 sekret)
 docker compose up -d
 
-# === ELESTIO LIGHT ===
-cd docker/course_vps_elestio_light
-# Zmienne wstrzykiwane przez Elestio CI/CD
-docker compose up -d
-
 # === Wspolne ===
 docker compose logs -f [nazwa-uslugi]
 docker compose pull && docker compose up -d
@@ -217,32 +193,32 @@ docker compose exec pg_database pg_dump -U postgres n8n_db > backup.sql
 
 ## Roznice miedzy stackami
 
-| Cecha | Local | VPS (pelny) | VPS light | VPS n8n+workers | VPS n8n (no workers) | VPS nocodb | VPS qdrant | Elestio light |
-|-------|-------|-------------|-----------|-----------------|---------------------|------------|------------|---------------|
-| Reverse proxy | Brak | Caddy | Caddy | Caddy | Caddy | Caddy | Caddy | Elestio Nginx |
-| SSL | Brak | Let's Encrypt | Let's Encrypt | Let's Encrypt | Let's Encrypt | Let's Encrypt | Let's Encrypt | Elestio |
-| Hasla | Domyslne | 8 sekretow | 8 sekretow | 5 sekretow | 5 sekretow | 5 sekretow | 1 sekret | 8 sekretow |
-| Domeny | localhost | 5 subdomen | 4 subdomeny | 1 subdomena | 1 subdomena | 2 subdomeny | 1 subdomena | Elestio |
-| Uslugi | 9 | 9 | 7 | 6 | 4 | 5 | 2 | 5+pg-init |
-| RAM | ~4GB | ~6GB | ~4GB | ~2GB | ~1.5GB | ~2GB | ~2.5GB | ~4GB |
-| Queue mode | Tak | Tak | Nie | Tak | Nie | - | - | Nie |
-| n8n | Tak | Tak | Tak | Tak | Tak | Nie | Nie | Tak |
-| NocoDB | Tak | Tak | Tak | Nie | Nie | Tak | Nie | Tak |
-| MinIO | Tak | Tak | Tak | Nie | Nie | Tak | Nie | Tak |
-| Qdrant | Tak | Tak | Tak | Nie | Nie | Nie | Tak | Nie |
+| Cecha | Local | VPS (pelny) | VPS light | VPS n8n+workers | VPS n8n (no workers) | VPS nocodb | VPS qdrant |
+|-------|-------|-------------|-----------|-----------------|---------------------|------------|------------|
+| Reverse proxy | Brak | Caddy | Caddy | Caddy | Caddy | Caddy | Caddy |
+| SSL | Brak | Let's Encrypt | Let's Encrypt | Let's Encrypt | Let's Encrypt | Let's Encrypt | Let's Encrypt |
+| Hasla | Domyslne | 8 sekretow | 8 sekretow | 5 sekretow | 5 sekretow | 5 sekretow | 1 sekret |
+| Domeny | localhost | 5 subdomen | 4 subdomeny | 1 subdomena | 1 subdomena | 2 subdomeny | 1 subdomena |
+| Uslugi | 9 | 9 | 7 | 6 | 4 | 5 | 2 |
+| RAM | ~4GB | ~6GB | ~4GB | ~2GB | ~1.5GB | ~2GB | ~2.5GB |
+| Queue mode | Tak | Tak | Nie | Tak | Nie | - | - |
+| n8n | Tak | Tak | Tak | Tak | Tak | Nie | Nie |
+| NocoDB | Tak | Tak | Tak | Nie | Nie | Tak | Nie |
+| MinIO | Tak | Tak | Tak | Nie | Nie | Tak | Nie |
+| Qdrant | Tak | Tak | Tak | Nie | Nie | Nie | Tak |
 
 ## Uslugi i porty
 
-| Usluga | Port | Local | VPS (pelny) | VPS light | VPS n8n+workers | VPS n8n (no workers) | VPS nocodb | VPS qdrant | Elestio light |
-|--------|------|-------|-------------|-----------|-----------------|---------------------|------------|------------|---------------|
-| n8n | 5678 | localhost:5678 | n8n.DOMAIN | n8n.DOMAIN | n8n.DOMAIN | n8n.DOMAIN | - | - | 172.17.0.1:5678 |
-| nocodb | 8080 | localhost:8080 | nocodb.DOMAIN | nocodb.DOMAIN | - | - | nocodb.DOMAIN | - | 172.17.0.1:8080 |
-| minio console | 9001 | localhost:9001 | minio.DOMAIN | minio.DOMAIN | - | - | minio.DOMAIN | - | 172.17.0.1:9001 |
-| minio API | 9000 | localhost:9000 | api.minio.DOMAIN | api.minio.DOMAIN | - | - | api.minio.DOMAIN | - | 172.17.0.1:9000 |
-| qdrant | 6333 | localhost:6333 | qdrant.DOMAIN | qdrant.DOMAIN | - | - | - | qdrant.DOMAIN | - |
-| pg_database | 5432 | - | - | - | - | - | - | - | - |
-| redis | 6379 | - | - | - | - | - | - | - | - |
-| caddy | 80, 443 | - | tak | tak | tak | tak | tak | tak | - |
+| Usluga | Port | Local | VPS (pelny) | VPS light | VPS n8n+workers | VPS n8n (no workers) | VPS nocodb | VPS qdrant |
+|--------|------|-------|-------------|-----------|-----------------|---------------------|------------|------------|
+| n8n | 5678 | localhost:5678 | n8n.DOMAIN | n8n.DOMAIN | n8n.DOMAIN | n8n.DOMAIN | - | - |
+| nocodb | 8080 | localhost:8080 | nocodb.DOMAIN | nocodb.DOMAIN | - | - | nocodb.DOMAIN | - |
+| minio console | 9001 | localhost:9001 | minio.DOMAIN | minio.DOMAIN | - | - | minio.DOMAIN | - |
+| minio API | 9000 | localhost:9000 | api.minio.DOMAIN | api.minio.DOMAIN | - | - | api.minio.DOMAIN | - |
+| qdrant | 6333 | localhost:6333 | qdrant.DOMAIN | qdrant.DOMAIN | - | - | - | qdrant.DOMAIN |
+| pg_database | 5432 | - | - | - | - | - | - | - |
+| redis | 6379 | - | - | - | - | - | - | - |
+| caddy | 80, 443 | - | tak | tak | tak | tak | tak | tak |
 
 ## Konfiguracja
 
