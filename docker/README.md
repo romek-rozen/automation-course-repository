@@ -13,6 +13,7 @@ Konfiguracje Docker do kursu z automatyzacji.
 | [course_vps_n8n_without_workers](course_vps_n8n_without_workers/) | Tylko n8n (bez workerow) | Caddy, n8n, PostgreSQL, Redis |
 | [course_vps_nocodb](course_vps_nocodb/) | Tylko NocoDB + MinIO | Caddy, NocoDB, MinIO, PostgreSQL, Redis |
 | [course_vps_qdrant](course_vps_qdrant/) | Tylko Qdrant | Caddy, Qdrant |
+| [course_vps_elestio_light](course_vps_elestio_light/) | Elestio CI/CD (bez Caddy) | n8n, NocoDB, MinIO, PostgreSQL, Redis |
 
 ## Ktory wybrac?
 
@@ -23,6 +24,7 @@ Konfiguracje Docker do kursu z automatyzacji.
 - **Tylko automatyzacje (n8n) bez workerow** → `course_vps_n8n_without_workers`
 - **Tylko baza no-code** → `course_vps_nocodb`
 - **Tylko vector DB (RAG)** → `course_vps_qdrant`
+- **Elestio CI/CD (pelny stack bez workerow)** → `course_vps_elestio_light`
 
 ## Szybki start
 
@@ -40,12 +42,12 @@ docker compose up -d
 
 ## Porownanie
 
-| Cecha | Local | VPS pelny | VPS light | n8n+workers | n8n (no workers) | nocodb | qdrant |
-|-------|-------|-----------|-----------|-------------|-----------------|--------|--------|
-| SSL | Brak | Tak | Tak | Tak | Tak | Tak | Tak |
-| RAM | ~4GB | ~6GB | ~4GB | ~2GB | ~1.5GB | ~2GB | ~2.5GB |
-| Domeny | localhost | 5 | 4 | 1 | 1 | 2 | 1 |
-| Queue mode | Tak | Tak | Nie | Tak | Nie | - | - |
+| Cecha | Local | VPS pelny | VPS light | n8n+workers | n8n (no workers) | nocodb | qdrant | Elestio light |
+|-------|-------|-----------|-----------|-------------|-----------------|--------|--------|---------------|
+| SSL | Brak | Tak | Tak | Tak | Tak | Tak | Tak | Elestio |
+| RAM | ~4GB | ~6GB | ~4GB | ~2GB | ~1.5GB | ~2GB | ~2.5GB | ~4GB |
+| Domeny | localhost | 5 | 4 | 1 | 1 | 2 | 1 | Elestio |
+| Queue mode | Tak | Tak | Nie | Tak | Nie | - | - | Nie |
 
 ## Adresy (local stack)
 

@@ -17,6 +17,7 @@ Repozytorium z konfiguracjami Docker do kursu z automatyzacji.
 | `docker/course_vps_n8n_without_workers/` | Uproszczony VPS (tylko n8n, bez workerow) |
 | `docker/course_vps_nocodb/` | Uproszczony VPS (tylko NocoDB + MinIO) |
 | `docker/course_vps_qdrant/` | Uproszczony VPS (tylko Qdrant) |
+| `docker/course_vps_elestio_light/` | Light stack dla Elestio CI/CD (bez Caddy) |
 
 ## Szczegoly techniczne
 
