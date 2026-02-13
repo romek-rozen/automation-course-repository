@@ -12,46 +12,29 @@ Wklej zawartosc pliku `docker-compose.yml` do pola "docker-compose.yml".
 
 ### 2. Environment variables
 
-Wklej do pola `.env` (zmien wartosci hasel!):
+Wklej zawartosc pliku `.env.example` do pola `.env`.
 
-```env
-SOFTWARE_VERSION_TAG=latest
-DOMAIN=[CI_CD_DOMAIN]
+**Wazne:** Przed wklejeniem wygeneruj wlasne hasla dla kazdej zmiennej oznaczonej komentarzem `# Generuj:`:
 
-# Redis
-REDIS_PASSWORD=ZMIEN_NA_SILNE_HASLO
+```bash
+# Hasla (hex 32 znaki):
+openssl rand -hex 32
 
-# PostgreSQL
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=ZMIEN_NA_SILNE_HASLO
-POSTGRES_NOCODB_DB=nocodb_db
-POSTGRES_NOCODB_USER=nocodb
-POSTGRES_NOCODB_PASSWORD=ZMIEN_NA_SILNE_HASLO
-POSTGRES_N8N_DB=n8n_db
-POSTGRES_N8N_USER=n8n
-POSTGRES_N8N_PASSWORD=ZMIEN_NA_SILNE_HASLO
-
-# n8n
-N8N_ENCRYPTION_KEY=ZMIEN_NA_SILNE_HASLO
-N8N_USER_MANAGEMENT_JWT_SECRET=ZMIEN_NA_SILNE_HASLO
-N8N_GENERIC_TIMEZONE=Europe/Warsaw
-N8N_SMTP_HOST=172.17.0.1
-N8N_SMTP_PORT=25
-N8N_SMTP_USER=
-N8N_SMTP_PASS=
-N8N_SMTP_SENDER=
-
-# NocoDB
-NC_JWT_SECRET=ZMIEN_NA_UUID
-
-# MinIO
-MINIO_ROOT_USER=minioadmin
-MINIO_ROOT_PASSWORD=ZMIEN_NA_SILNE_HASLO
+# UUID (dla NC_JWT_SECRET):
+uuidgen
 ```
 
+Zmienne wymagajace wlasnych hasel:
+- `REDIS_PASSWORD`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_NOCODB_PASSWORD`
+- `POSTGRES_N8N_PASSWORD`
+- `N8N_ENCRYPTION_KEY`
+- `N8N_USER_MANAGEMENT_JWT_SECRET`
+- `NC_JWT_SECRET` (UUID)
+- `MINIO_ROOT_PASSWORD`
+
 > `[CI_CD_DOMAIN]` - Elestio automatycznie podmieni na Twoja domene.
-> Hasla wygeneruj: `openssl rand -hex 32`
-> UUID wygeneruj: `uuidgen` lub https://www.uuidgenerator.net/
 
 ### 3. Reverse proxy configuration
 
@@ -77,6 +60,29 @@ Elestio poda adresy:
 - **n8n:** `https://twoja-domena.elestio.app:443`
 - **NocoDB:** `https://twoja-domena.elestio.app:24580`
 - **MinIO Console:** `https://twoja-domena.elestio.app:24581`
+
+## Wlasne subdomeny (opcjonalne)
+
+Zamiast portow mozesz podpiac wlasne subdomeny. W panelu Elestio:
+
+1. Wejdz w **Settings** → **Custom Domains**
+2. Dodaj subdomeny i przypisz je do odpowiednich portow:
+
+| Subdomena | Port docelowy | Usluga |
+|-----------|---------------|--------|
+| `n8n.twoja-domena.pl` | 443 | n8n |
+| `nocodb.twoja-domena.pl` | 24580 | NocoDB |
+| `minio.twoja-domena.pl` | 24581 | MinIO Console |
+
+3. U swojego dostawcy DNS dodaj rekordy **CNAME** wskazujace na adres Elestio:
+
+```
+n8n.twoja-domena.pl      CNAME  twoja-domena.elestio.app
+nocodb.twoja-domena.pl   CNAME  twoja-domena.elestio.app
+minio.twoja-domena.pl    CNAME  twoja-domena.elestio.app
+```
+
+> Elestio automatycznie wygeneruje certyfikaty SSL dla Twoich subdomen.
 
 ## Pliki
 
